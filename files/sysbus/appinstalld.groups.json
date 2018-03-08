@@ -1,0 +1,6 @@
+{
+    "appinstalld.internal": {
+        "description": "internal methods for app install",
+        "public": false
+    }
+}

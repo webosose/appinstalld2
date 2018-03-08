@@ -1,0 +1,39 @@
+// Copyright (c) 2016-2018 LG Electronics, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+// SPDX-License-Identifier: Apache-2.0
+
+#ifndef JAILER_H
+#define JAILER_H
+
+#include <string>
+#include <functional>
+#include <glib.h>
+
+//! Jailer class helps remove jailer directories
+class Jailer
+{
+public:
+    //! Remove jailer directoies with appId
+    bool remove(std::string appId, std::function<void (bool)> onRemoved);
+
+protected:
+    //! it's called when removing jailer directoies complete
+    static void cbRemoveComplete(GPid pid, gint status, gpointer user_data);
+
+private:
+    std::function<void (bool)> m_funcComplete;
+};
+
+#endif

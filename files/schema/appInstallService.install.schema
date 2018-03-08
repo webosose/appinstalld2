@@ -1,0 +1,19 @@
+{
+    "id"    : "appInstallService.install",
+    "type"  : "object",
+    "properties" : {
+        "id" : {
+            "type"     : "string",
+            "description" : "ID of application to be installed."
+        },
+        "ipkUrl" : {
+            "type" : "string",
+            "description" : "Ipk file path of application to be installed."
+        },
+        "subscribe" : {
+            "type" : "boolean",
+            "description" : "Subscribe this call and subscribers can receive install progress."
+        }
+    },
+    "required" : [ "id", "ipkUrl" ]
+}

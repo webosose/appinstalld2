@@ -1,0 +1,54 @@
+{
+    "id": "settings",
+    "type": "object",
+    "properties": {
+        "installerDataPath": {
+            "type": "string",
+            "description": "Data directory path for internal use."
+        },
+        "userinstallPath" : {
+            "type": "string",
+            "description": "User install app path."
+        },
+        "jsservicePath" : {
+            "type": "string",
+            "description": "run-js-service script file path. It's used when make nodejs service files."
+        },
+        "installSteps" : {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "description": "install status"
+                    },
+                    "action": {
+                        "type": "string",
+                        "description": "install actions"
+                    }
+                },
+                "required": ["status", "action"]
+            },
+            "description" : "Definition install status & actions"
+        },
+        "removeSteps" : {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "description": "remove status"
+                    },
+                    "action": {
+                        "type": "string",
+                        "description": "remove actions"
+                    }
+                },
+                "required": ["status", "action"]
+            },
+            "description" : "Definition remove status & actions"
+        }
+    }
+}

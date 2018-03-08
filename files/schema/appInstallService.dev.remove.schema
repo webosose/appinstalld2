@@ -1,0 +1,15 @@
+{
+    "id"    : "appInstallService.dev.remove",
+    "type"  : "object",
+    "properties" : {
+        "id" : {
+            "type" : "string",
+            "description" : "ID of application to be removed."
+        },
+        "subscribe" : {
+            "type" : "boolean",
+            "description" : "Subscribe this call and subscribers can receive remove progress."
+        }
+    },
+    "required" : [ "id" ]
+}

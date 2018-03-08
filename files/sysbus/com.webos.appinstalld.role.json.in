@@ -1,0 +1,13 @@
+{
+    "exeName":"@WEBOS_INSTALL_SBINDIR@/appinstalld",
+    "type": "regular",
+    "allowedNames": ["com.webos.appInstallService"],
+    "permissions": [
+        {
+            "service":"com.webos.appInstallService",
+            "outbound":[
+                "*"
+            ]
+        }
+    ]
+}

@@ -1,0 +1,11 @@
+{
+    "appinstalld.internal": [
+        "com.webos.appInstallService/install",
+        "com.webos.appInstallService/remove",
+        "com.webos.appInstallService/status"
+    ],
+    "ares.webos.cli": [
+        "com.webos.appInstallService/dev/install",
+        "com.webos.appInstallService/dev/remove"
+    ]
+}

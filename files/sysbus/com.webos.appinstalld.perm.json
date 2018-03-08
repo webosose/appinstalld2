@@ -1,0 +1,14 @@
+{
+    "com.webos.appInstallService": [
+        "all",
+        "applications.internal",
+        "database.internal",
+        "devices",
+        "networking.internal",
+        "notifications",
+        "security",
+        "settings",
+        "system.debug",
+        "tv.management"
+    ]
+}

@@ -1,0 +1,10 @@
+{
+    "id"    : "appInstallService.status",
+    "type"  : "object",
+    "properties" : {
+        "subscribe" : {
+            "type" : "boolean",
+            "description" : "Subscribe this call and subscribers can receive all appinstalld status changes."
+        }
+    }
+}
