@@ -111,6 +111,24 @@ namespace CallChainEventHandler
         return false;
     }
 
+    AppRemovable::AppRemovable()
+    {
+    }
+
+    bool AppRemovable::Call()
+    {
+        pbnjson::JValue chainData = getChainData();
+        pbnjson::JValue appInfo = chainData["appInfo"];
+        if (appInfo.isNull() || !appInfo["removable"].asBool())
+        {
+            onError("The app is not removable");
+            return false;
+        }
+
+        onFinished(true, "");
+        return true;
+    }
+
     AppLock::AppLock(const char *serviceName, std::string id)
         : LSCallItem(serviceName,
             "luna://com.webos.applicationManager/lockApp", "")

@@ -52,6 +52,13 @@ namespace CallChainEventHandler
         virtual bool onReceiveCall(pbnjson::JValue message);
     };
 
+    class AppRemovable : public CallItem
+    {
+    public:
+        AppRemovable();
+        virtual bool Call();
+    };
+
     class AppLock : public LSCallItem
     {
     public:

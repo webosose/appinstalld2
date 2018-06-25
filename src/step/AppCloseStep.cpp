@@ -54,6 +54,9 @@ bool AppCloseStep::proceed(Task *task)
     );
     itemAppInfo->setOption(CallItem::OPTION_NONSTOP);
 
+    auto itemAppRemovable = std::make_shared<CallChainEventHandler::AppRemovable>(
+    );
+
     auto itemAppLock = std::make_shared<CallChainEventHandler::AppLock>(
         "com.webos.appInstallService",
         packageId
@@ -76,6 +79,7 @@ bool AppCloseStep::proceed(Task *task)
     m_parentTask->setStep(AppCloseRequested);
     callchain
         .add(itemAppInfo)
+        .add_if(itemAppInfo, true, itemAppRemovable)
         .add_if(itemAppInfo, true, itemAppLock)
         .add(itemRunning)
         .add_if(itemRunning, true, itemClose)
