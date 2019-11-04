@@ -128,9 +128,9 @@ bool ServiceInstallerUtility::install(std::string appId, std::string installBase
             return false;
         }
     }
-    else if (appInfo.isWeb())
+    else if (appInfo.isWeb() || appInfo.isQml())
     {
-        // Web applications should have role file too
+        // Web/Qml applications should have role file too
         if (!generateRoleFileForWebApp(pathInfo.roled, appInfo.getId()) ||
             !generatePermissionFileForWebApp(pathInfo.permissiond, pathInfo.verified, appInfo, serviceLists))
         {
@@ -513,14 +513,14 @@ bool ServiceInstallerUtility::generateManifestFile(const PathInfo &pathInfo, con
         rolePrvFileArray.append(filePath + "/prv" + "/" + appInfo.getId() + ".json" );
         rolePubFileArray.append(filePath + "/pub" + "/" + appInfo.getId() + ".json" );
     }
-    else if (appInfo.isWeb())
+    else if (appInfo.isWeb() || appInfo.isQml())
     {
-        //generateRoleFileForWebApp
+        //generateRoleFileForWeb/QmlApp
         filePath = adjustLunaDirForManifest(pathInfo.root, pathInfo.roled);
         fileDir = filePath + "/" + Settings::instance().getLunaUnifiedAppJsonFileName(appInfo.getId());
         roledFileArray.append(fileDir);
 
-        //generatePermissionFileForWebApp
+        //generatePermissionFileForWeb/QmlApp
         filePath = adjustLunaDirForManifest(pathInfo.root, pathInfo.permissiond);
         fileDir = filePath + "/" + Settings::instance().getLunaUnifiedAppJsonFileName(appInfo.getId());
         permissiondFileArray.append(fileDir);

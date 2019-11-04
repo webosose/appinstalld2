@@ -47,6 +47,8 @@ public:
 
     //! Whether is web app type
     bool isWeb() const;
+    //! Whether is qml app type
+    bool isQml() const;
     //! Whether is native app type
     bool isNative() const;
     //! Whether is stub app type

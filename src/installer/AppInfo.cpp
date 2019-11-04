@@ -38,9 +38,14 @@ bool AppInfo::isWeb() const
     return (getType() == "web");
 }
 
+bool AppInfo::isQml() const
+{
+    return (getType() == "qml");
+}
+
 bool AppInfo::isNative() const
 {
-    return (!isWeb() && !isStub());
+    return (!isWeb() && !isQml() && !isStub());
 }
 
 bool AppInfo::isStub() const
