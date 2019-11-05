@@ -18,7 +18,7 @@ Below are the tools and libraries required to build appinstalld2:
 * webosose/luna-service2
 * webosose/libpbnjson
 * webosose/pmloglib
-* Boost-signals
+* Boost
 * webosose/pmtrace
 
 Copyright and License Information

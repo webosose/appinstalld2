@@ -46,7 +46,7 @@ pkg_check_modules(PMLOG REQUIRED PmLogLib)
 include_directories(${PMLOG_INCLUDE_DIRS})
 webos_add_compiler_flags(ALL ${PMLOG_CFLAGS_OTHER})
 
-find_package(Boost REQUIRED COMPONENTS signals)
+find_package(Boost REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 webos_add_compiler_flags(ALL ${Boost_CFLAGS_OTHER})
 add_definitions(-DBOOST_BIND_NO_PLACEHOLDERS)
