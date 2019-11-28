@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2018 LG Electronics, Inc.
+// Copyright (c) 2013-2019 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,10 +17,10 @@
 #ifndef APP_INSTALLER_H
 #define APP_INSTALLER_H
 
-#include <string>
-#include <pbnjson.hpp>
 #include <map>
 #include <memory>
+#include <pbnjson.hpp>
+#include <string>
 
 #include "base/Singleton.hpp"
 #include "InstallHistory.h"
@@ -31,8 +31,7 @@ class Task;
 /*! AppInstaller class is responsible for creating Task and managing them.
  * This class stores Task's updates in db and can restore them when it is needed.
  */
-class AppInstaller : public Singleton<AppInstaller>
-{
+class AppInstaller : public Singleton<AppInstaller> {
 public:
     //! Constructor
     AppInstaller();
@@ -47,15 +46,21 @@ public:
     void finalize();
 
     //! Install app from local
-    std::shared_ptr<Task> install(const std::string& appId, const std::string& ipkUrl,
-        pbnjson::JValue appInfo,
-        int &errorCode, std::string &errorText,
-        bool verify = true, bool allowDowngrade = true, std::string taskName = "InstallTask");
+    std::shared_ptr<Task> install(const std::string& appId,
+                                  const std::string& ipkUrl,
+                                  pbnjson::JValue appInfo,
+                                  int &errorCode,
+                                  std::string &errorText,
+                                  bool verify = true,
+                                  bool allowDowngrade = true,
+                                  std::string taskName = "InstallTask");
 
     //! Remove app from given appId
-    std::shared_ptr<Task> remove(const std::string &appId, pbnjson::JValue appInfo,
-        int& errorCode, std::string& errorText,
-        bool verify = true);
+    std::shared_ptr<Task> remove(const std::string &appId,
+                                 pbnjson::JValue appInfo,
+                                 int& errorCode,
+                                 std::string& errorText,
+                                 bool verify = true);
 
     //! Check contains task instance
     bool contains(Task *task);
@@ -87,7 +92,6 @@ public:
     boost::signals2::signal<void (const Task&)> signalFinished;
 
 protected:
-
     //! It's called when Task started
     void onStartTask(const Task &task);
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2018 LG Electronics, Inc.
+// Copyright (c) 2013-2019 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,20 +17,18 @@
 #ifndef INSTALLHISTORY_H
 #define INSTALLHISTORY_H
 
-#include "base/Utils.h"
-#include <string>
 #include <map>
+#include <string>
 
-namespace pbnjson
-{
+#include "base/Utils.h"
+
+namespace pbnjson {
     class JValue;
 }
 
 //! value for representing install status
-enum TaskStep
-{
-    Undefied = -1,
-    Unknown, // 0
+enum TaskStep {
+    Undefied = -1, Unknown, // 0
     IconDownloadNeeded, // 1
     IconDownloadRequested, // 2
     IconDownloadCurrent, // 3
@@ -102,12 +100,11 @@ enum TaskStep
     IpkVerifyNeeded, //268
     IpkVerifyRequested, //269
     IpkVerifyComplete, //270
-    //Signing Related end
+//Signing Related end
 };
 
-class TaskStepParser
-{
-    std::map <std::string, TaskStep> enumMap;
+class TaskStepParser {
+    std::map<std::string, TaskStep> enumMap;
 public:
     TaskStepParser()
     {
@@ -194,20 +191,20 @@ public:
         enumMap["IpkVerifyNeeded"] = IpkVerifyNeeded;
         enumMap["IpkVerifyRequested"] = IpkVerifyRequested;
         enumMap["IpkVerifyComplete"] = IpkVerifyComplete;
-     }
+    }
 
     TaskStep stringToEnumStep(const std::string &strStep)
     {
-        std::map <std::string, TaskStep>::const_iterator enumIter = enumMap.find(strStep);
-        if (enumIter  == enumMap.end())
+        std::map<std::string, TaskStep>::const_iterator enumIter = enumMap.find(strStep);
+        if (enumIter == enumMap.end())
             return Undefied;
         return enumIter->second;
     }
 
     std::string enumToStringStep(const TaskStep step)
     {
-        for(auto it = enumMap.begin(); it != enumMap.end() ; it++)
-            if(it->second == step)
+        for (auto it = enumMap.begin(); it != enumMap.end(); it++)
+            if (it->second == step)
                 return it->first;
 
         return std::string("");

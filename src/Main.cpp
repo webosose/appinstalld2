@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2018 LG Electronics, Inc.
+// Copyright (c) 2013-2019 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,14 +16,13 @@
 
 #include <stdio.h>
 
+#include "AppImpl.h"
 #include "base/Logging.h"
 #include "settings/Settings.h"
-#include "AppImpl.h"
 
 int main(int argc, char **argv)
 {
-    if (!MainApp::instance().create())
-    {
+    if (!MainApp::instance().create()) {
         LOG_ERROR(MSGID_SRVC_INIT_FAIL,0,"Service failed to initialize");
         return -1;
     }

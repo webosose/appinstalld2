@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2018 LG Electronics, Inc.
+// Copyright (c) 2013-2019 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,15 +17,14 @@
 #ifndef PACKAGEINFO_H
 #define PACKAGEINFO_H
 
+#include <pbnjson.hpp>
 #include <string>
 #include <vector>
-#include <pbnjson.hpp>
 
 /*! PackageInfo class is responsible for parsing packageinfo.json
  * and contain parsed data
  */
-class PackageInfo
-{
+class PackageInfo {
 public:
     /*! Constructor
      * Load packageinfo from packagePath

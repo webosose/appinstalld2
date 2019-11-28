@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2018 LG Electronics, Inc.
+// Copyright (c) 2013-2019 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,16 +17,15 @@
 #ifndef SERVICE_BASE_H
 #define SERVICE_BASE_H
 
-#include <string>
 #include <glib.h>
-#include <vector>
 #include <luna-service2/lunaservice.hpp>
+#include <string>
+#include <vector>
 
 using namespace LS;
 
 //! Base class for Service
-class ServiceBase : public Handle
-{
+class ServiceBase : public Handle {
 public:
     //! Constructor
     ServiceBase(std::string serviceName);

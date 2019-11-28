@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2018 LG Electronics, Inc.
+// Copyright (c) 2013-2019 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,19 +14,34 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
+#include <boost/algorithm/string.hpp>
+#include <boost/lexical_cast.hpp>
+#include <fstream>
+#include <sstream>
+#include <stdlib.h>
+
 #include "AppPackage.h"
 #include "base/Logging.h"
 #include "base/Utils.h"
 
-#include <fstream>
-#include <sstream>
-#include <stdlib.h>
-#include <boost/algorithm/string.hpp>
-#include <boost/lexical_cast.hpp>
-
 #define FILENAME_CONTROL "control.tar.gz"
 #define FILENAME_DATA    "data.tar.gz"
 #define FILENAME_DEBIAN  "debian-binary"
+
+void AppPackage::cbExtractComplete(GPid pid, gint status, gpointer user_data)
+{
+    AppPackage *package = reinterpret_cast<AppPackage*>(user_data);
+    if (!package)
+        return;
+
+    if (!WIFEXITED(status) || (WEXITSTATUS(status) != 0) || package->isCanceled()) {
+        package->m_funcExtracted(false);
+        return;
+    }
+
+    if (!package->extractOneItem())
+        package->m_funcExtracted(false);
+}
 
 std::string AppPackage::Control::getPackage() const
 {
@@ -49,9 +64,9 @@ uint64_t AppPackage::Control::getInstalledSize() const
 }
 
 bool AppPackage::extract(std::string targetFile,
-    int targetItem,
-    std::string targetPath,
-    std::function<void (bool)> onExtract)
+                         int targetItem,
+                         std::string targetPath,
+                         std::function<void (bool)> onExtract)
 {
     gchar* argv[16] = {0};
     GError* gerr = NULL;
@@ -91,8 +106,7 @@ bool AppPackage::extract(std::string targetFile,
                            &childPid,
                            &gerr);
 
-    if (result)
-    {
+    if (result) {
         g_child_watch_add(childPid, cbExtractComplete, this);
 
         m_targetFile = targetFile;
@@ -106,11 +120,11 @@ bool AppPackage::extract(std::string targetFile,
         return true;
     }
 
-    if (gerr)
-    {
-        LOG_ERROR(MSGID_APPUNPACK_IPK_FAIL,2,
-            PMLOGKS(FILENAME, targetFile.c_str()),
-            PMLOGKS(LOGKEY_ERRTEXT,gerr->message),"Failed to unpack file");
+    if (gerr) {
+        LOG_ERROR(MSGID_APPUNPACK_IPK_FAIL, 2,
+                  PMLOGKS(FILENAME, targetFile.c_str()),
+                  PMLOGKS(LOGKEY_ERRTEXT,gerr->message),
+                  "Failed to unpack file");
         g_error_free(gerr);
     }
 
@@ -119,8 +133,7 @@ bool AppPackage::extract(std::string targetFile,
 
 bool AppPackage::extractOneItem()
 {
-    if (m_targetItemList.empty())
-    {
+    if (m_targetItemList.empty()) {
         m_funcExtracted(true);
         return true;
     }
@@ -150,17 +163,16 @@ bool AppPackage::extractOneItem()
                            &childPid,
                            &gerr);
 
-    if (result)
-    {
+    if (result) {
         g_child_watch_add(childPid, cbExtractComplete, this);
         return true;
     }
 
-    if (gerr)
-    {
-        LOG_ERROR(MSGID_APPUNPACK_TAR_FAIL,2,
-            PMLOGKS(FILENAME, targetFile.c_str()),
-            PMLOGKS(LOGKEY_ERRTEXT,gerr->message),"Failed to unzip file");
+    if (gerr) {
+        LOG_ERROR(MSGID_APPUNPACK_TAR_FAIL, 2,
+                  PMLOGKS(FILENAME, targetFile.c_str()),
+                  PMLOGKS(LOGKEY_ERRTEXT,gerr->message),
+                  "Failed to unzip file");
         g_error_free(gerr);
     }
 
@@ -173,10 +185,8 @@ bool AppPackage::parseControl(std::string controlFilePath, AppPackage::Control &
     std::string line;
     std::string field, value;
 
-    if (file.good())
-    {
-        while(std::getline(file, line))
-        {
+    if (file.good()) {
+        while(std::getline(file, line)) {
             std::istringstream lineStream(line);
 
             if (!std::getline(lineStream, field, ':'))
@@ -185,10 +195,14 @@ bool AppPackage::parseControl(std::string controlFilePath, AppPackage::Control &
                 continue;
 
             boost::trim(value);
-            if (field == "Package") control.m_package = value;
-            else if (field == "Version") control.m_version = value;
-            else if (field == "Architecture") control.m_architecture = value;
-            else if (field == "Installed-Size") control.m_installedSize = boost::lexical_cast<uint64_t>(value);
+            if (field == "Package")
+                control.m_package = value;
+            else if (field == "Version")
+                control.m_version = value;
+            else if (field == "Architecture")
+                control.m_architecture = value;
+            else if (field == "Installed-Size")
+                control.m_installedSize = boost::lexical_cast<uint64_t>(value);
         }
 
         file.close();
@@ -206,22 +220,6 @@ void AppPackage::saveInstalledSizeToControlFile(std::string controlFilePath, uin
         file << "Installed-Size: " << unpackFileSize << std::endl;
 
     file.close();
-}
-
-void AppPackage::cbExtractComplete(GPid pid, gint status, gpointer user_data)
-{
-    AppPackage *package = reinterpret_cast<AppPackage*>(user_data);
-    if (!package)
-        return;
-
-    if (!WIFEXITED(status) || (WEXITSTATUS(status) != 0) || package->isCanceled())
-    {
-        package->m_funcExtracted(false);
-        return;
-    }
-
-    if (!package->extractOneItem())
-        package->m_funcExtracted(false);
 }
 
 void AppPackage::cancel()

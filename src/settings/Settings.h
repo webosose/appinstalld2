@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2018 LG Electronics, Inc.
+// Copyright (c) 2013-2019 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,59 +17,15 @@
 #ifndef SETTINGS_H
 #define SETTINGS_H
 
+#include <glib.h>
+#include <set>
 #include <string>
 #include <vector>
-#include <set>
-#include <glib.h>
+
 #include "base/Singleton.hpp"
 
-class Settings : public Singleton<Settings>
-{
+class Settings: public Singleton<Settings> {
 public:
-    std::string m_installerDataPath;        //default : @WEBOS_INSTALL_WEBOS_LOCALSTATEDIR@/data/com.webos.appInstallService
-    std::string m_userinstallPath;          //default : @WEBOS_INSTALL_CRYPTOFSDIR@
-    std::string m_systeminstallPath;        //default : @WEBOS_INSTALL_CRYPTOFSDIR@  TODO: change this dir after system partition is created
-    std::string m_developerinstallPath;     //default : /media/developer
-    std::string m_aliasinstallPath;         //default : /media/alias
-    std::string m_aliasTempinstallPath;     //default : /tmp/alias
-    std::string m_applicationPath;          //default : /usr/palm/applications
-    std::string m_packagePath;              //default : /usr/palm/packages
-    std::string m_servicePath;              //default : /usr/palm/services
-    std::string m_applicationinstallPath;   //default : /apps + m_applicationPath
-    std::string m_packageinstallPath;       //default : /apps + m_packagePath
-    std::string m_serviceinstallPath;       //default : /apps + m_servicePath
-    std::string m_opkgConfPath;             //default : @WEBOS_INSTALL_WEBOS_SYSCONFDIR@/opkg.conf
-    std::string m_opkgInfoPath;             //default : /apps/var/lib/opkg/info
-    std::string m_opkgStatusFilePath;       //default : /apps/var/lib/opkg/status
-    std::string m_opkgLockFilePath;         //default : /apps/var/lock/opkg
-    std::string m_lunaFilesPath;            //default : @WEBOS_INSTALL_WEBOS_LOCALSTATEDIR@/ls2
-    std::string m_developerlunaFilesPath;   //default : @WEBOS_INSTALL_WEBOS_LOCALSTATEDIR@/ls2-dev
-    std::string m_jsservicePath;            //default : @WEBOS_INSTALL_BINDIR@/run-js-service
-    std::string m_jailerPath;               //default : @WEBOS_INSTALL_BINDIR@/usr/bin/jailer
-    std::string m_roleTemplatePathNDK;      //default : @WEBOS_INSTALL_DATADIR@/rolegen/templates/NDK
-    std::string m_roleTemplatePathWebApp;   //default : @WEBOS_INSTALL_DATADIR@/rolegen/templates/WebApp.json
-    std::string m_roleTemplatePathJSService;//default : @WEBOS_INSTALL_DATADIR@/rolegen/templates/JSService.json
-    std::string m_roleTemplatePathNativeService;//default : @WEBOS_INSTALL_DATADIR@/rolegen/templates/NativeService.json
-    std::string m_confPath;                 //default : @WEBOS_INSTALL_WEBOS_SYSCONFDIR@/appinstalld-conf.json
-    std::string m_schemaPath;               //default : @WEBOS_INSTALL_WEBOS_SYSCONFDIR@/schemas/appinstalld/
-    // TODO : This is temp code for opkg works properly
-    std::string m_devModePath;              // default : /var/luna/preferences/devmode_enabled
-    bool m_isDevMode;                       // default : false
-    bool m_isJailMode;                      // default : false
-    std::string m_localePath;               // default : /var/luna/preferences/localeInfo
-
-    //TODO : Replace path definition from webospaths.h
-    std::string m_manifestPath;             // default : /var/luna-service2/manifests.d
-    std::string m_manifestDevPath;          // default : /var/luna-service2-dev/manifests.d
-
-    // Signage media file path which need to link app path
-    std::string m_signageContentsPath;      // default : /mnt/lg/appstore/scap/contents/
-
-    bool m_supportUI;                       // default : true
-    bool m_supportUpdateService;            // default : true
-    int m_timeout;                          // default : 3 * 60 * 1000
-    int m_minimumAppSize;                  // default : 100 * 1024
-
     /*! parse opkg conf path from opkg.conf file */
     bool parseOpkgConfigure();
 
@@ -86,7 +42,7 @@ public:
     /*! get install application path
      * if it's verified returns m_userinstallPath + m_applicationinstallPath,
      * or m_developerinstallPath + m_applicationinstallPath
-    */
+     */
     std::string getInstallApplicationPath(bool verified) const;
 
     /*! get install package path
@@ -173,11 +129,73 @@ public:
      */
     std::string getGroupNameForService(const std::string &serviceId);
 
+    const std::string& getInstallerDataPath() const;
+    const std::string& getApplicationPath() const;
+    const std::string& getPackagePath() const;
+    const std::string& getPackageinstallPath() const;
+    const std::string& getServiceinstallPath() const;
+    const std::string& getOpkgConfPath() const;
+    const std::string& getOpkgInfoPath() const;
+    const std::string& getOpkgLockFilePath() const;
+    const std::string& getJsservicePath() const;
+    const std::string& getJailerPath() const;
+    const std::string& getRoleTemplatePathNDK() const;
+    const std::string& getRoleTemplatePathWebApp() const;
+    const std::string& getRoleTemplatePathJSService() const;
+    const std::string& getRoleTemplatePathNativeService() const;
+    const std::string& getConfPath() const;
+    const std::string& getSchemaPath() const;
+    bool isDevMode();
+    bool isJailMode();
+    const std::string& getLocalePath() const;
+
 protected:
+friend class Singleton<Settings> ;
     Settings();
     virtual ~Settings();
 
-    friend class Singleton<Settings>;
+private:
+    std::string m_installerDataPath;        //default : @WEBOS_INSTALL_WEBOS_LOCALSTATEDIR@/data/com.webos.appInstallService
+    std::string m_userinstallPath;          //default : @WEBOS_INSTALL_CRYPTOFSDIR@
+    std::string m_systeminstallPath;        //default : @WEBOS_INSTALL_CRYPTOFSDIR@  TODO: change this dir after system partition is created
+    std::string m_developerinstallPath;     //default : /media/developer
+    std::string m_aliasinstallPath;         //default : /media/alias
+    std::string m_aliasTempinstallPath;     //default : /tmp/alias
+    std::string m_applicationPath;          //default : /usr/palm/applications
+    std::string m_packagePath;              //default : /usr/palm/packages
+    std::string m_servicePath;              //default : /usr/palm/services
+    std::string m_applicationinstallPath;   //default : /apps + m_applicationPath
+    std::string m_packageinstallPath;       //default : /apps + m_packagePath
+    std::string m_serviceinstallPath;       //default : /apps + m_servicePath
+    std::string m_opkgConfPath;             //default : @WEBOS_INSTALL_WEBOS_SYSCONFDIR@/opkg.conf
+    std::string m_lunaFilesPath;            //default : @WEBOS_INSTALL_WEBOS_LOCALSTATEDIR@/ls2
+    std::string m_developerlunaFilesPath;   //default : @WEBOS_INSTALL_WEBOS_LOCALSTATEDIR@/ls2-dev
+    std::string m_jsservicePath;            //default : @WEBOS_INSTALL_BINDIR@/run-js-service
+    std::string m_jailerPath;               //default : @WEBOS_INSTALL_BINDIR@/usr/bin/jailer
+    std::string m_roleTemplatePathNDK;      //default : @WEBOS_INSTALL_DATADIR@/rolegen/templates/NDK
+    std::string m_roleTemplatePathWebApp;   //default : @WEBOS_INSTALL_DATADIR@/rolegen/templates/WebApp.json
+    std::string m_roleTemplatePathJSService;   //default : @WEBOS_INSTALL_DATADIR@/rolegen/templates/JSService.json
+    std::string m_roleTemplatePathNativeService;   //default : @WEBOS_INSTALL_DATADIR@/rolegen/templates/NativeService.json
+    std::string m_confPath;                 //default : @WEBOS_INSTALL_WEBOS_SYSCONFDIR@/appinstalld-conf.json
+    std::string m_schemaPath;               //default : @WEBOS_INSTALL_WEBOS_SYSCONFDIR@/schemas/appinstalld/
+    // TODO : This is temp code for opkg works properly
+    std::string m_devModePath;              // default : /var/luna/preferences/devmode_enabled
+    bool m_isDevMode;                       // default : false
+    bool m_isJailMode;                      // default : false
+    std::string m_localePath;               // default : /var/luna/preferences/localeInfo
+
+    // Signage media file path which need to link app path
+    std::string m_signageContentsPath;      // default : /mnt/lg/appstore/scap/contents/
+
+    bool m_supportUI;                       // default : true
+    bool m_supportUpdateService;            // default : true
+    int m_timeout;                          // default : 3 * 60 * 1000
+    int m_minimumAppSize;                  // default : 100 * 1024
+
+    std::string m_opkgInfoPath;             //default : /apps/var/lib/opkg/info
+    std::string m_opkgStatusFilePath;       //default : /apps/var/lib/opkg/status
+    std::string m_opkgLockFilePath;         //default : /apps/var/lock/opkg
+
 };
 
 #endif // Settings

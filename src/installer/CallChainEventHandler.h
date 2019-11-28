@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2018 LG Electronics, Inc.
+// Copyright (c) 2013-2019 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,8 +22,7 @@
 
 namespace CallChainEventHandler
 {
-    class AppRunning : public LSCallItem
-    {
+    class AppRunning : public LSCallItem {
     public:
         AppRunning(const char *serviceName, std::string id);
 
@@ -34,8 +33,7 @@ namespace CallChainEventHandler
         std::string m_id;
     };
 
-    class AppClose : public LSCallItem
-    {
+    class AppClose : public LSCallItem {
     public:
         AppClose(const char *serviceName, std::string id);
 
@@ -43,8 +41,7 @@ namespace CallChainEventHandler
         virtual bool onReceiveCall(pbnjson::JValue message);
     };
 
-    class AppInfo : public LSCallItem
-    {
+    class AppInfo : public LSCallItem {
     public:
         AppInfo(const char *serviceName, std::string id);
 
@@ -52,15 +49,13 @@ namespace CallChainEventHandler
         virtual bool onReceiveCall(pbnjson::JValue message);
     };
 
-    class AppRemovable : public CallItem
-    {
+    class AppRemovable : public CallItem {
     public:
         AppRemovable();
         virtual bool Call();
     };
 
-    class AppLock : public LSCallItem
-    {
+    class AppLock : public LSCallItem {
     public:
         AppLock(const char *serviceName, std::string id);
 
@@ -68,8 +63,7 @@ namespace CallChainEventHandler
         virtual bool onReceiveCall(pbnjson::JValue message);
     };
 
-    class SvcClose : public CallItem
-    {
+    class SvcClose : public CallItem {
     public:
         SvcClose();
 
@@ -83,8 +77,7 @@ namespace CallChainEventHandler
         int m_numServices;
     };
 
-    class RemoveDb : public LSCallItem
-    {
+    class RemoveDb : public LSCallItem {
     public:
         RemoveDb(const char* serviceName, pbnjson::JValue owners);
 
@@ -92,8 +85,7 @@ namespace CallChainEventHandler
         virtual bool onReceiveCall(pbnjson::JValue message);
     };
 
-    class UpdateManifest : public LSCallItem
-    {
+    class UpdateManifest : public LSCallItem {
     public:
         UpdateManifest(const char *serviceName, bool add, std::string path, std::string prefix, std::string id);
 
@@ -101,8 +93,7 @@ namespace CallChainEventHandler
         virtual bool onReceiveCall(pbnjson::JValue message);
     };
 
-    class RemoveIpk : public CallItem
-    {
+    class RemoveIpk : public CallItem {
     public:
         RemoveIpk(std::string id, bool verify, std::string externalPath);
         virtual bool Call();

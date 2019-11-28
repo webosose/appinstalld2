@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2018 LG Electronics, Inc.
+// Copyright (c) 2013-2019 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,14 +17,14 @@
 #ifndef _LSUTILS_H_
 #define _LSUTILS_H_
 
+#include <algorithm>
+#include <iterator>
+#include <luna-service2/lunaservice.hpp>
 #include <map>
 #include <string>
 #include <sstream>
-#include <algorithm>
-#include <iterator>
 
-#include <base/ServiceBase.h>
-#include <luna-service2/lunaservice.hpp>
+#include "base/ServiceBase.h"
 #include "Singleton.hpp"
 
 namespace pbnjson
@@ -55,21 +55,27 @@ using namespace LS;
 { nullptr, nullptr } \
 };
 
-class LSCaller
-{
+class LSCaller {
 public:
     //! Constructor
     LSCaller(LSHandle *handle);
 
     //! Call LSCall
-    bool Call(const char *uri, const char *payload,
-        LSFilterFunc callback, void *user_data,
-        LSMessageToken *ret_token, std::string &errorText);
+    bool Call(const char *uri,
+              const char *payload,
+              LSFilterFunc callback,
+              void *user_data,
+              LSMessageToken *ret_token,
+              std::string &errorText);
 
     //! Call LSCallOneReply
-    bool CallOneReply(const char *uri, const char *payload,
-        LSFilterFunc callback, void *user_data,
-        LSMessageToken *ret_token, std::string &errorText, int timeout = 0);
+    bool CallOneReply(const char *uri,
+                      const char *payload,
+                      LSFilterFunc callback,
+                      void *user_data,
+                      LSMessageToken *ret_token,
+                      std::string &errorText,
+                      int timeout = 0);
 
     //! CallCancel
     bool CallCancel(LSMessageToken token, std::string &errorText);
@@ -86,8 +92,7 @@ private:
 class ServiceBase;
 
 //! List of utilites for luna-service
-class LSUtils : public Singleton<LSUtils>
-{
+class LSUtils : public Singleton<LSUtils> {
 public:
     //! Retrieve ServiceHandle for given service name
     static LSCaller acquireCaller(std::string serviceName);

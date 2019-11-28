@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2018 LG Electronics, Inc.
+// Copyright (c) 2013-2019 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,29 +17,31 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include <string>
-#include <iostream>
 #include <fstream>
-#include <sstream>
 #include <glib.h>
+#include <iostream>
+#include <sstream>
+#include <string>
 #include <tuple>
 
 template <size_t N>
-struct Tuple
-{
+struct Tuple {
     template <typename F, typename T, typename ... A>
     static inline auto apply(F && f, T && t, A &&... a)
         -> decltype(Tuple<N-1>::apply(std::forward<F>(f),
-            std::forward<T>(t), std::get<N-1>(std::forward<T>(t)), std::forward<A>(a)...))
+                                      std::forward<T>(t),
+                                      std::get<N-1>(std::forward<T>(t)),
+                                      std::forward<A>(a)...))
     {
         return Tuple<N-1>::apply(std::forward<F>(f),
-            std::forward<T>(t), std::get<N-1>(std::forward<T>(t)), std::forward<A>(a)...);
+                                 std::forward<T>(t),
+                                 std::get<N-1>(std::forward<T>(t)),
+                                 std::forward<A>(a)...);
     }
 };
 
 template <>
-struct Tuple<0>
-{
+struct Tuple<0> {
     template <typename F, typename T, typename ... A>
     static inline auto apply(F && f, T && t, A &&... a)
         -> decltype(std::forward<F>(f)(std::forward<A>(a)...))
@@ -49,12 +51,10 @@ struct Tuple<0>
 };
 
 //! List of utilites for common
-class Utils
-{
+class Utils {
 private:
     // abstract class for async call
-    class IAsyncCall
-    {
+    class IAsyncCall {
     public:
         virtual ~IAsyncCall() { }
         virtual void Call() = 0;
@@ -62,8 +62,7 @@ private:
 
     // implementaion for async call
     template <typename T>
-    class AsyncCall : public IAsyncCall
-    {
+    class AsyncCall : public IAsyncCall {
     public:
         AsyncCall(T _func) : func(_func) {}
 
@@ -115,7 +114,6 @@ public:
     }
 
 private:
-
     //! It's called when get response async call
     static gboolean cbAsync(gpointer data);
 };

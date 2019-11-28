@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2018 LG Electronics, Inc.
+// Copyright (c) 2013-2019 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,14 +14,14 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#include "PackageInfo.h"
 #include "base/JUtil.h"
+#include "PackageInfo.h"
 
 const std::string DEFAULT_VERSION = "1.0.0";
 
 PackageInfo::PackageInfo(std::string packagePath)
-    : m_packagePath(packagePath)
-    , m_loaded(false)
+    : m_packagePath(packagePath),
+      m_loaded(false)
 {
     m_loaded = load();
 }
@@ -41,7 +41,7 @@ bool PackageInfo::getServices(std::vector<std::string> &serviceLists)
         return false;
 
     size_t arraySize = services.arraySize();
-    for(size_t i = 0;i < arraySize;++i)
+    for (size_t i = 0; i < arraySize; ++i)
         serviceLists.push_back(services[i].asString());
 
     return true;

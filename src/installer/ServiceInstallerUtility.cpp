@@ -14,64 +14,65 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#include "ServiceInstallerUtility.h"
-
+#include <boost/algorithm/string/predicate.hpp>
 #include <iostream>
 
-#include "settings/Settings.h"
+#include "AppInfo.h"
 #include "base/CallChain.h"
 #include "base/JUtil.h"
-#include "base/Utils.h"
 #include "base/Logging.h"
+#include "base/Utils.h"
 #include "base/System.h"
 #include "installer/CallChainEventHandler.h"
-#include "AppInfo.h"
 #include "PackageInfo.h"
 #include "ServiceInfo.h"
+#include "ServiceInstallerUtility.h"
+#include "settings/Settings.h"
 #include "Manifest.h"
-
-#include <boost/algorithm/string/predicate.hpp>
 
 using namespace std::placeholders;
 
 static void roleGenerate(std::string templatePath,
-    std::string destinationPath,
-    std::string id,
-    std::string executablePath)
+                         std::string destinationPath,
+                         std::string id,
+                         std::string executablePath)
 {
     std::string line;
     size_t n;
     static const std::string ID_TAG = "XXXIDXXX";
     static const std::string PATH_TAG = "XXXEXEPATHXXX";
 
-    std::ifstream myfile (templatePath.c_str());
-    std::ofstream newfile (destinationPath.c_str());
+    std::ifstream myfile(templatePath.c_str());
+    std::ofstream newfile(destinationPath.c_str());
 
-    if (myfile.is_open() && newfile.is_open())
-    {
-        while (!myfile.eof())
-        {
-            std::getline(myfile, line);
-            while ((n=line.find(ID_TAG)) != std::string::npos)
-                line.replace(n, ID_TAG.length(), id);
-            while ((n=line.find(PATH_TAG)) != std::string::npos)
-                line.replace(n, PATH_TAG.length(), executablePath);
-            newfile << line << std::endl;
-        }
-        newfile.close();
-        myfile.close();
+    if (!myfile.is_open() || !newfile.is_open()) {
+        return;
     }
+
+    while (!myfile.eof()) {
+        std::getline(myfile, line);
+        while ((n = line.find(ID_TAG)) != std::string::npos)
+            line.replace(n, ID_TAG.length(), id);
+        while ((n = line.find(PATH_TAG)) != std::string::npos)
+            line.replace(n, PATH_TAG.length(), executablePath);
+        newfile << line << std::endl;
+    }
+    newfile.close();
+    myfile.close();
 }
 
-bool ServiceInstallerUtility::install(std::string appId, std::string installBasePath, const PathInfo &pathInfo, std::function<void (bool, std::string)> onComplete, bool isUpdate)
+bool ServiceInstallerUtility::install(std::string appId,
+                                      std::string installBasePath,
+                                      const PathInfo &pathInfo,
+                                      std::function<void(bool, std::string)> onComplete,
+                                      bool isUpdate)
 {
-    std::string applicationPath = installBasePath + Settings::instance().m_applicationinstallPath + "/" + appId;
-    std::string packagePath = installBasePath + Settings::instance().m_packageinstallPath + "/" + appId;
+    std::string applicationPath = installBasePath + Settings::instance().getApplicationInstallPath() + "/" + appId;
+    std::string packagePath = installBasePath + Settings::instance().getPackageinstallPath() + "/" + appId;
 
     AppInfo appInfo(applicationPath);
-    if (!appInfo.isLoaded())
-    {
-        Utils::async([=] { onComplete(false, "Cannot find appinfo.json"); });
+    if (!appInfo.isLoaded()) {
+        Utils::async([=] {onComplete(false, "Cannot find appinfo.json");});
         return false;
     }
 
@@ -82,113 +83,105 @@ bool ServiceInstallerUtility::install(std::string appId, std::string installBase
         packageInfo.getServices(serviceLists);
 
     // generate Manifest file
-    if (!generateManifestFile(pathInfo, installBasePath, packageInfo, appInfo))
-    {
-        Utils::async([=] { onComplete(false, "Failed to generate Manifest file"); });
+    if (!generateManifestFile(pathInfo, installBasePath, packageInfo, appInfo)) {
+        Utils::async([=] {onComplete(false, "Failed to generate Manifest file");});
         return false;
     }
 
     // generate service files
-    for(auto iter = serviceLists.begin(); iter != serviceLists.end(); ++iter)
-    {
-        std::string servicePath = installBasePath + Settings::instance().m_serviceinstallPath + "/" + (*iter);
+    for (auto iter = serviceLists.begin(); iter != serviceLists.end(); ++iter) {
+        std::string servicePath = installBasePath + Settings::instance().getServiceinstallPath() + "/" + (*iter);
         ServiceInfo serviceInfo(servicePath);
         serviceInfo.applyRootPath(pathInfo.root);
 
-        if (serviceInfo.getType() == "native")
-        {
-            if (!pathInfo.verified) serviceInfo.applyJailer(ServiceInfo::JAILER_DEV);
+        if (serviceInfo.getType() == "native") {
+            if (!pathInfo.verified)
+                serviceInfo.applyJailer(ServiceInfo::JAILER_DEV);
         }
 
-        if (!boost::starts_with(serviceInfo.getId(), appId + std::string(".")))
-        {
+        if (!boost::starts_with(serviceInfo.getId(), appId + std::string("."))) {
             LOG_WARNING(MSGID_WRONG_SERVICEID, 2,
-                PMLOGKS("SERVICE_ID", serviceInfo.getId().c_str()),
-                PMLOGKS("APP_ID", appId.c_str()), "Service id should start with app id");
-            Utils::async([=] { onComplete(false, "Service id should start with app id"); });
+                        PMLOGKS("SERVICE_ID", serviceInfo.getId().c_str()),
+                        PMLOGKS("APP_ID", appId.c_str()),
+                        "Service id should start with app id");
+            Utils::async([=] {onComplete(false, "Service id should start with app id");});
             return false;
         }
 
-        if (!generateFilesForService(pathInfo, serviceInfo, appInfo))
-        {
-            Utils::async([=] { onComplete(false, "Failed to generate service files"); });
+        if (!generateFilesForService(pathInfo, serviceInfo, appInfo)) {
+            Utils::async([=] {onComplete(false, "Failed to generate service files");});
             return false;
         }
     }
 
     // native app has default role file
-    if (appInfo.isNative())
-    {
+    if (appInfo.isNative()) {
         ServiceInfo serviceInfo = ServiceInfo::generate(appId, "ndk", appInfo.getPath(), appInfo.getMain(false));
         serviceInfo.applyRootPath(pathInfo.root);
         if (!generateRoleFile(pathInfo.roles + "/prv", false, serviceInfo) ||
-            !generateRoleFile(pathInfo.roles + "/pub", true, serviceInfo) )
-        {
-            Utils::async([=] { onComplete(false, "Failed to generate default role files"); });
+            !generateRoleFile(pathInfo.roles + "/pub", true, serviceInfo)) {
+            Utils::async([=] {onComplete(false, "Failed to generate default role files");});
             return false;
         }
-    }
-    else if (appInfo.isWeb() || appInfo.isQml())
-    {
+    } else if (appInfo.isWeb() || appInfo.isQml()) {
         // Web/Qml applications should have role file too
         if (!generateRoleFileForWebApp(pathInfo.roled, appInfo.getId()) ||
-            !generatePermissionFileForWebApp(pathInfo.permissiond, pathInfo.verified, appInfo, serviceLists))
-        {
-            Utils::async([=] { onComplete(false, "Failed to generate role and permission file for Web application"); });
+            !generatePermissionFileForWebApp(pathInfo.permissiond, pathInfo.verified, appInfo, serviceLists)) {
+            Utils::async([=] {onComplete(false, "Failed to generate role and permission file for Web application");});
             return false;
         }
     }
 
     // tell the hub there's a new service in town
     CallChain& callchain = CallChain::acquire(std::bind(&ServiceInstallerUtility::onUpdateManifest,
-        this, _1, _2, onComplete));
+                                                        this, _1, _2, onComplete));
 
-    if (isUpdate)
-    {
-        auto removeItemAppInfo = std::make_shared<CallChainEventHandler::UpdateManifest>(
-                        "com.webos.appInstallService",
-                        false,
-                        adjustLunaDirForManifest(pathInfo.root, pathInfo.manifestsd),
-                        pathInfo.root,
-                        appId
-                        );
+    if (isUpdate) {
+        auto removeItemAppInfo =
+            std::make_shared<CallChainEventHandler::UpdateManifest>("com.webos.appInstallService",
+                                                                    false,
+                                                                    adjustLunaDirForManifest(pathInfo.root, pathInfo.manifestsd),
+                                                                    pathInfo.root,
+                                                                    appId);
         callchain.add(removeItemAppInfo);
     }
 
-    auto addItemAppInfo = std::make_shared<CallChainEventHandler::UpdateManifest>(
-                "com.webos.appInstallService",
-                true,
-                adjustLunaDirForManifest(pathInfo.root, pathInfo.manifestsd),
-                pathInfo.root,
-                appId
-                );
+    auto addItemAppInfo = std::make_shared<CallChainEventHandler::UpdateManifest>("com.webos.appInstallService",
+                                                                                  true,
+                                                                                  adjustLunaDirForManifest(pathInfo.root, pathInfo.manifestsd),
+                                                                                  pathInfo.root,
+                                                                                  appId);
     callchain.add(addItemAppInfo);
 
-    if(!callchain.run())
+    if (!callchain.run())
         return false;
 
     return true;
 }
 
-bool ServiceInstallerUtility::onUpdateManifest(pbnjson::JValue result, void *user_data, std::function<void (bool, std::string)> onComplete)
+bool ServiceInstallerUtility::onUpdateManifest(pbnjson::JValue result,
+                                               void *user_data,
+                                               std::function<void(bool, std::string)> onComplete)
 {
     bool returnValue = result["returnValue"].asBool();
 
-    if (!returnValue)
-    {
+    if (!returnValue) {
         std::string errorText = result["errorText"].asString();
         onComplete(false, errorText);
         return false;
     }
-    onComplete(true,"success");
+    onComplete(true, "success");
 
     return true;
 }
 
-bool ServiceInstallerUtility::onRemoveManifest(pbnjson::JValue result, void *user_data,
-    const std::string &appId, const PathInfos &pathInfos, std::function<void (bool, std::string)> onComplete)
+bool ServiceInstallerUtility::onRemoveManifest(pbnjson::JValue result,
+                                               void *user_data,
+                                               const std::string &appId,
+                                               const PathInfos &pathInfos,
+                                               std::function<void(bool, std::string)> onComplete)
 {
-    for(const auto &pathInfo : pathInfos)
+    for (const auto &pathInfo : pathInfos)
         removeOne(appId, pathInfo);
 
     // always true
@@ -197,25 +190,24 @@ bool ServiceInstallerUtility::onRemoveManifest(pbnjson::JValue result, void *use
     return true;
 }
 
-bool ServiceInstallerUtility::remove(std::string appId, const PathInfos &pathInfos, std::function<void (bool, std::string)> onComplete)
+bool ServiceInstallerUtility::remove(std::string appId,
+                                     const PathInfos &pathInfos,
+                                     std::function<void(bool, std::string)> onComplete)
 {
     CallChain& callchain = CallChain::acquire(std::bind(&ServiceInstallerUtility::onRemoveManifest,
-        this, _1, _2, appId, pathInfos, onComplete));
+                                                        this, _1, _2, appId, pathInfos, onComplete));
 
-    for(auto pathInfo : pathInfos)
-    {
-        auto itemAppInfo = std::make_shared<CallChainEventHandler::UpdateManifest>(
-                    "com.webos.appInstallService",
-                    false,
-                    adjustLunaDirForManifest(pathInfo.root, pathInfo.manifestsd),
-                    pathInfo.root,
-                    appId
-                    );
+    for (auto pathInfo : pathInfos) {
+        auto itemAppInfo =
+            std::make_shared<CallChainEventHandler::UpdateManifest>("com.webos.appInstallService", false,
+                                                                    adjustLunaDirForManifest(pathInfo.root, pathInfo.manifestsd),
+                                                                    pathInfo.root,
+                                                                    appId);
         callchain.add(itemAppInfo);
     }
 
     // tell the hub there's a new service in town
-    if(!callchain.run())
+    if (!callchain.run())
         return false;
 
     return true;
@@ -236,9 +228,8 @@ bool ServiceInstallerUtility::removeOne(const std::string &appId, const PathInfo
 
     // Remove files
     std::string path;
-    for(auto it = paths.begin(); it != paths.end(); ++it)
-    {
-        if ( !((*it).empty()) && (*it)[0] == '/')
+    for (auto it = paths.begin(); it != paths.end(); ++it) {
+        if (!((*it).empty()) && (*it)[0] == '/')
             path = *it;
         else
             path = pathInfo.root + "/" + *it;
@@ -253,7 +244,9 @@ bool ServiceInstallerUtility::removeOne(const std::string &appId, const PathInfo
     return true;
 }
 
-bool ServiceInstallerUtility::generateFilesForService(const PathInfo &pathInfo, const ServiceInfo &servicesInfo, const AppInfo &appInfo)
+bool ServiceInstallerUtility::generateFilesForService(const PathInfo &pathInfo,
+                                                      const ServiceInfo &servicesInfo,
+                                                      const AppInfo &appInfo)
 {
     return (generateRoleFileForService(pathInfo.roled, servicesInfo, appInfo) &&
             generatePermissionFileForService(pathInfo.permissiond, pathInfo.verified, servicesInfo, appInfo) &&
@@ -268,11 +261,15 @@ bool ServiceInstallerUtility::generateRoleFile(std::string path, bool isPublic, 
 
     std::string templatePath;
 
-    if (servicesInfo.getType() == "ndk") templatePath = Settings::instance().m_roleTemplatePathNDK;
-    else return false; // invalid type!! Use generateUnifiedAppRoleFile instead
+    if (servicesInfo.getType() == "ndk")
+        templatePath = Settings::instance().getRoleTemplatePathNDK();
+    else
+        return false; // invalid type!! Use generateUnifiedAppRoleFile instead
 
-    if (isPublic) templatePath += ".pub";
-    else templatePath += ".prv";
+    if (isPublic)
+        templatePath += ".pub";
+    else
+        templatePath += ".prv";
 
     std::string filename = path + "/" + servicesInfo.getId() + ".json";
 
@@ -287,8 +284,10 @@ bool ServiceInstallerUtility::generateRoleFile(std::string path, bool isPublic, 
 }
 
 bool ServiceInstallerUtility::generateUnifiedAppRoleFile(const std::string &path,
-    const std::string &templatePath, const std::string &fileName,
-    const std::string &id, const std::string &exec)
+                                                         const std::string &templatePath,
+                                                         const std::string &fileName,
+                                                         const std::string &id,
+                                                         const std::string &exec)
 {
     if (!Utils::make_dir(path))
         return false;
@@ -308,38 +307,46 @@ bool ServiceInstallerUtility::generateUnifiedAppRoleFile(const std::string &path
     return true;
 }
 
-bool ServiceInstallerUtility::generateRoleFileForWebApp(const std::string &path, const std::string &appId)
+bool ServiceInstallerUtility::generateRoleFileForWebApp(const std::string &path,
+                                                        const std::string &appId)
 {
     return generateUnifiedAppRoleFile(path,
-        Settings::instance().m_roleTemplatePathWebApp,
-        Settings::instance().getLunaUnifiedAppJsonFileName(appId),
-        appId, "");
+                                      Settings::instance().getRoleTemplatePathWebApp(),
+                                      Settings::instance().getLunaUnifiedAppJsonFileName(appId),
+                                      appId,
+                                      "");
 }
 
-bool ServiceInstallerUtility::generateRoleFileForService(const std::string &path, const ServiceInfo &servicesInfo, const AppInfo &appInfo)
+bool ServiceInstallerUtility::generateRoleFileForService(const std::string &path,
+                                                         const ServiceInfo &servicesInfo,
+                                                         const AppInfo &appInfo)
 {
     std::string templatePath;
     if (servicesInfo.getType() == "native")
-        templatePath = Settings::instance().m_roleTemplatePathNativeService;
+        templatePath = Settings::instance().getRoleTemplatePathNativeService();
     else
-        templatePath = Settings::instance().m_roleTemplatePathJSService;
+        templatePath = Settings::instance().getRoleTemplatePathJSService();
 
     return generateUnifiedAppRoleFile(path,
-        templatePath,
-        Settings::instance().getLunaUnifiedServiceJsonFileName(servicesInfo.getId()),
-        servicesInfo.getId(), servicesInfo.getExec(true));
+                                      templatePath,
+                                      Settings::instance().getLunaUnifiedServiceJsonFileName(servicesInfo.getId()),
+                                      servicesInfo.getId(),
+                                      servicesInfo.getExec(true));
 }
 
-bool ServiceInstallerUtility::generateUnifiedAppPermissionsFile(const std::string &path, bool verified,
-    const std::string &fileName, const AppInfo &appInfo,
-    const std::string &id, const std::string &allowedMask,
-    const std::vector<std::string> &requiredServices)
+bool ServiceInstallerUtility::generateUnifiedAppPermissionsFile(const std::string &path,
+                                                                bool verified,
+                                                                const std::string &fileName,
+                                                                const AppInfo &appInfo,
+                                                                const std::string &id,
+                                                                const std::string &allowedMask,
+                                                                const std::vector<std::string> &requiredServices)
 {
     if (!Utils::make_dir(path))
         return false;
 
     // Prepare permissions file fileName for service name "id" with "allowedMask"
-    std::ofstream ofs{path + ("/" + fileName)};
+    std::ofstream ofs { path + ("/" + fileName) };
     if (!ofs)
         return false;
 
@@ -348,25 +355,22 @@ bool ServiceInstallerUtility::generateUnifiedAppPermissionsFile(const std::strin
     JValue groups = Array();
 
     JValue requires = appInfo.getRequiredPermissions();
-    static const JSchemaFragment requires_schema{R"(
+    static const JSchemaFragment requires_schema { R"(
         {
             "type": "array",
             "items": {"type": "string"}
         }
-    )"};
-    if (JValidator{}.isValid(requires, requires_schema, nullptr))
-    {
+    )" };
+    if (JValidator { }.isValid(requires, requires_schema, nullptr)) {
         groups = requires;
-    }
-    else
-    {
+    } else {
         LOG_WARNING(MSGID_WRONG_SERVICEID, 1,
                     PMLOGKS("APP_ID", id.c_str()),
                     "#/requiredPermissions is missing in appinfo.json, set as public");
         groups << "public";
     }
 
-    for (const auto &service: requiredServices)
+    for (const auto &service : requiredServices)
         groups << Settings::instance().getGroupNameForService(service);
 
     // Finally, dump the permissions object into the file.
@@ -377,30 +381,43 @@ bool ServiceInstallerUtility::generateUnifiedAppPermissionsFile(const std::strin
     return true;
 }
 
-bool ServiceInstallerUtility::generatePermissionFileForWebApp(const std::string &path, bool verified,
-    const AppInfo &appInfo, const std::vector<std::string> &requiredServices)
+bool ServiceInstallerUtility::generatePermissionFileForWebApp(const std::string &path,
+                                                              bool verified,
+                                                              const AppInfo &appInfo,
+                                                              const std::vector<std::string> &requiredServices)
 {
-    return generateUnifiedAppPermissionsFile(path, verified,
-        Settings::instance().getLunaUnifiedAppJsonFileName(appInfo.getId()),
-        appInfo, appInfo.getId(), "-*", requiredServices);
+    return generateUnifiedAppPermissionsFile(path,
+                                             verified,
+                                             Settings::instance().getLunaUnifiedAppJsonFileName(appInfo.getId()),
+                                             appInfo,
+                                             appInfo.getId(),
+                                             "-*",
+                                             requiredServices);
 }
 
-bool ServiceInstallerUtility::generatePermissionFileForService(const std::string &path, bool verified,
-    const ServiceInfo &servicesInfo, const AppInfo &appInfo)
+bool ServiceInstallerUtility::generatePermissionFileForService(const std::string &path,
+                                                               bool verified,
+                                                               const ServiceInfo &servicesInfo,
+                                                               const AppInfo &appInfo)
 {
-    return generateUnifiedAppPermissionsFile(path, verified,
-        Settings::instance().getLunaUnifiedServiceJsonFileName(servicesInfo.getId()),
-        appInfo, servicesInfo.getId(), "*");
+    return generateUnifiedAppPermissionsFile(path,
+                                             verified,
+                                             Settings::instance().getLunaUnifiedServiceJsonFileName(servicesInfo.getId()),
+                                             appInfo,
+                                             servicesInfo.getId(),
+                                             "*");
 }
 
-bool ServiceInstallerUtility::generateAPIPermissionsFileForService(const std::string &path, bool verified,
-    const ServiceInfo &servicesInfo, const AppInfo &appInfo)
+bool ServiceInstallerUtility::generateAPIPermissionsFileForService(const std::string &path,
+                                                                   bool verified,
+                                                                   const ServiceInfo &servicesInfo,
+                                                                   const AppInfo &appInfo)
 {
     if (!Utils::make_dir(path))
         return false;
 
     // Prepare API permissions file for service
-    std::ofstream ofs{path + ("/" + Settings::instance().getLunaUnifiedAPIJsonFileName(servicesInfo.getId()))};
+    std::ofstream ofs { path + ("/" + Settings::instance().getLunaUnifiedAPIJsonFileName(servicesInfo.getId())) };
     if (!ofs)
         return false;
 
@@ -420,7 +437,9 @@ bool ServiceInstallerUtility::generateAPIPermissionsFileForService(const std::st
     return true;
 }
 
-bool ServiceInstallerUtility::generateServiceFile(std::string path, const ServiceInfo &servicesInfo, const AppInfo &appInfo)
+bool ServiceInstallerUtility::generateServiceFile(std::string path,
+                                                  const ServiceInfo &servicesInfo,
+                                                  const AppInfo &appInfo)
 {
     if (!Utils::make_dir(path))
         return false;
@@ -434,24 +453,18 @@ bool ServiceInstallerUtility::generateServiceFile(std::string path, const Servic
     LOG_DEBUG("Generated service file: service - %s ", servicesInfo.getId().c_str());
 
     std::string exec;
-    if (servicesInfo.getType() == "native")
-    {
-        if (Settings::instance().m_isJailMode)
-        {
-            exec = Settings::instance().m_jailerPath;
+    if (servicesInfo.getType() == "native") {
+        if (Settings::instance().isJailMode()) {
+            exec = Settings::instance().getJailerPath();
             exec += " -t " + servicesInfo.getJailerType();
             exec += " -i " + appInfo.getId();
             exec += " -p " + servicesInfo.getPath(false); //relative path
-            exec +=  " " + servicesInfo.getExec(true); //full path by adding relative path
-        }
-        else
-        {
+            exec += " " + servicesInfo.getExec(true); //full path by adding relative path
+        } else {
             exec = servicesInfo.getExec(true);
         }
-    }
-    else
-    {
-        exec = Settings::instance().m_jsservicePath + " -n " + servicesInfo.getPath(false);
+    } else {
+        exec = Settings::instance().getJsservicePath() + " -n " + servicesInfo.getPath(false);
     }
 
     outputFile << "[D-BUS Service]" << std::endl;
@@ -463,7 +476,10 @@ bool ServiceInstallerUtility::generateServiceFile(std::string path, const Servic
     return true;
 }
 
-bool ServiceInstallerUtility::generateManifestFile(const PathInfo &pathInfo, const std::string& installBasePath, PackageInfo &packageInfo, const AppInfo &appInfo)
+bool ServiceInstallerUtility::generateManifestFile(const PathInfo &pathInfo,
+                                                   const std::string& installBasePath,
+                                                   PackageInfo &packageInfo,
+                                                   const AppInfo &appInfo)
 {
     pbnjson::JValue manifestObj = pbnjson::Object();
     pbnjson::JValue rolePrvFileArray = pbnjson::Array();
@@ -479,9 +495,8 @@ bool ServiceInstallerUtility::generateManifestFile(const PathInfo &pathInfo, con
     if (packageInfo.isLoaded())
         packageInfo.getServices(serviceLists);
 
-    for(auto iter = serviceLists.begin(); iter != serviceLists.end(); ++iter)
-    {
-        std::string servicePath = installBasePath + Settings::instance().m_serviceinstallPath + "/" + (*iter);
+    for (auto iter = serviceLists.begin(); iter != serviceLists.end(); ++iter) {
+        std::string servicePath = installBasePath + Settings::instance().getServiceinstallPath() + "/" + (*iter);
         ServiceInfo serviceInfo(servicePath);
 
         //generateRoleFileForService
@@ -506,15 +521,12 @@ bool ServiceInstallerUtility::generateManifestFile(const PathInfo &pathInfo, con
     }
 
     // native app has default role file
-    if (appInfo.isNative())
-    {
+    if (appInfo.isNative()) {
         //generateRoleFile
         filePath = adjustLunaDirForManifest(pathInfo.root, pathInfo.roles);
-        rolePrvFileArray.append(filePath + "/prv" + "/" + appInfo.getId() + ".json" );
-        rolePubFileArray.append(filePath + "/pub" + "/" + appInfo.getId() + ".json" );
-    }
-    else if (appInfo.isWeb() || appInfo.isQml())
-    {
+        rolePrvFileArray.append(filePath + "/prv" + "/" + appInfo.getId() + ".json");
+        rolePubFileArray.append(filePath + "/pub" + "/" + appInfo.getId() + ".json");
+    } else if (appInfo.isWeb() || appInfo.isQml()) {
         //generateRoleFileForWeb/QmlApp
         filePath = adjustLunaDirForManifest(pathInfo.root, pathInfo.roled);
         fileDir = filePath + "/" + Settings::instance().getLunaUnifiedAppJsonFileName(appInfo.getId());
@@ -532,18 +544,24 @@ bool ServiceInstallerUtility::generateManifestFile(const PathInfo &pathInfo, con
     manifestObj.put("id", id);
     manifestObj.put("version", serviceLists.empty() ? appInfo.getVersion() : packageInfo.getVersion());
     //Don't put empty configuration value
-    if(0 < roledFileArray.arraySize()) manifestObj.put("roleFiles", roledFileArray);
-    if(0 < rolePubFileArray.arraySize()) manifestObj.put("roleFilesPub", rolePubFileArray);
-    if(0 < rolePrvFileArray.arraySize()) manifestObj.put("roleFilesPrv", rolePrvFileArray);
-    if(0 < serviceFileArray.arraySize()) manifestObj.put("serviceFiles", serviceFileArray);
-    if(0 < api_permissiondFileArray.arraySize()) manifestObj.put("apiPermissionFiles", api_permissiondFileArray);
-    if(0 < permissiondFileArray.arraySize()) manifestObj.put("clientPermissionFiles", permissiondFileArray);
+    if (0 < roledFileArray.arraySize())
+        manifestObj.put("roleFiles", roledFileArray);
+    if (0 < rolePubFileArray.arraySize())
+        manifestObj.put("roleFilesPub", rolePubFileArray);
+    if (0 < rolePrvFileArray.arraySize())
+        manifestObj.put("roleFilesPrv", rolePrvFileArray);
+    if (0 < serviceFileArray.arraySize())
+        manifestObj.put("serviceFiles", serviceFileArray);
+    if (0 < api_permissiondFileArray.arraySize())
+        manifestObj.put("apiPermissionFiles", api_permissiondFileArray);
+    if (0 < permissiondFileArray.arraySize())
+        manifestObj.put("clientPermissionFiles", permissiondFileArray);
 
     if (!Utils::make_dir(pathInfo.manifestsd))
         return false;
 
     std::string manifestfullPath = pathInfo.manifestsd + "/" + id + ".json";
-    LOG_DEBUG("[ServiceInstallerUtility] generateManifestFile : manifestfullPath - %s",manifestfullPath.c_str());
+    LOG_DEBUG("[ServiceInstallerUtility] generateManifestFile : manifestfullPath - %s", manifestfullPath.c_str());
 
     std::ofstream outputFile(manifestfullPath); //file name should be the same as "id" in manifest file
     if (!outputFile.is_open())
@@ -555,21 +573,18 @@ bool ServiceInstallerUtility::generateManifestFile(const PathInfo &pathInfo, con
     return true;
 }
 
-std::string ServiceInstallerUtility::adjustLunaDirForManifest(const std::string &rootPath, const std::string &relativePath)
+std::string ServiceInstallerUtility::adjustLunaDirForManifest(const std::string &rootPath,
+                                                              const std::string &relativePath)
 {
-    if(rootPath.empty())
-    {
+    if (rootPath.empty()) {
         return relativePath;
-    }
-    else
-    {
+    } else {
         std::size_t pos = relativePath.find(rootPath);
-        if (pos == std::string::npos)
-        {
+        if (pos == std::string::npos) {
             return relativePath;
         }
         std::string resultPath = relativePath;
-        resultPath.erase(0, rootPath.length()+1);
+        resultPath.erase(0, rootPath.length() + 1);
         return resultPath;
     }
 }

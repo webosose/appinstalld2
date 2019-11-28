@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2018 LG Electronics, Inc.
+// Copyright (c) 2013-2019 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,25 +17,23 @@
 #ifndef CALLCHAIN_H
 #define CALLCHAIN_H
 
-#include <luna-service2/lunaservice.h>
-#include <pbnjson.hpp>
-#include <deque>
-#include <vector>
-#include <memory>
-#include <tuple>
 #include <boost/signals2.hpp>
+#include <deque>
+#include <luna-service2/lunaservice.h>
+#include <memory>
+#include <pbnjson.hpp>
+#include <tuple>
+#include <vector>
 
 #include "Utils.h"
 
 class CallChain;
 
 //! This class is base class for CallChain class's item
-class CallItem
-{
-    friend class CallChain;
+class CallItem {
+friend class CallChain;
 public:
-    typedef enum
-    {
+    typedef enum {
         OPTION_NONSTOP = 0x01,
     } OPTION;
 
@@ -81,8 +79,7 @@ private:
 
 //! This class for call item using function
 template <typename R, typename... T>
-class FunctionCallItem : public CallItem
-{
+class FunctionCallItem : public CallItem {
 public:
     //! Constructor
     FunctionCallItem(std::function<R (T...)> func)
@@ -93,8 +90,7 @@ public:
     //! Execute this item
     virtual bool Call()
     {
-        if (!onBeforeCall())
-        {
+        if (!onBeforeCall()) {
             onError("Cancelled");
             return false;
         }
@@ -102,10 +98,7 @@ public:
         R funcResult = Utils::apply_tuple(m_func, m_params);
 
         bool result = onResult(funcResult);
-        Utils::async([=] {
-            onFinished(result, getError());
-        }
-        );
+        Utils::async([=] { onFinished(result, getError()); });
 
         return true;
     }
@@ -136,8 +129,7 @@ private:
 };
 
 //! This class for call item using luna-service call
-class LSCallItem : public CallItem
-{
+class LSCallItem : public CallItem {
 public:
     //! Constructor
     LSCallItem(const char *serviceName, const char *uri, const char *payload);
@@ -169,18 +161,16 @@ private:
 };
 
 //! This class helps call the items in consecutive order
-class CallChain
-{
+class CallChain {
     typedef std::shared_ptr<CallItem> CallItemPtr;
     typedef std::function<void (pbnjson::JValue, void*)> CallCompleteHandler;
 
     //! This strcuture for checking call condition
-    struct CallCondition
-    {
+    struct CallCondition {
         CallCondition(CallItemPtr _condition_call, bool _expected_result, CallItemPtr _target_call)
-            : condition_call(_condition_call)
-            , expected_result(_expected_result)
-            , target_call(_target_call)
+            : condition_call(_condition_call),
+              expected_result(_expected_result),
+              target_call(_target_call)
         {}
 
         CallItemPtr condition_call;

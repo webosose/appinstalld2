@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2018 LG Electronics, Inc.
+// Copyright (c) 2013-2019 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,12 +14,12 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
+#include <algorithm>
+
 #include "CallChain.h"
 #include "LSUtils.h"
 #include "JUtil.h"
 #include "Utils.h"
-
-#include <algorithm>
 
 using namespace std::placeholders;
 
@@ -33,8 +33,8 @@ static pbnjson::JValue makeResult(bool returnValue, std::string errorText)
 }
 
 CallItem::CallItem()
-    : m_chainData(pbnjson::Object())
-    , m_option(0)
+    : m_chainData(pbnjson::Object()),
+      m_option(0)
 {
 }
 
@@ -73,25 +73,22 @@ pbnjson::JValue CallItem::getChainData() const
 }
 
 LSCallItem::LSCallItem(const char *serviceName, const char *uri, const char *payload)
-    : m_serviceName(serviceName)
-    , m_uri(uri)
-    , m_payload(payload)
+    : m_serviceName(serviceName),
+      m_uri(uri),
+      m_payload(payload)
 {
 }
 
 bool LSCallItem::Call()
 {
-    if (!onBeforeCall())
-    {
+    if (!onBeforeCall()) {
         onError("Cancelled");
         return false;
     }
 
     std::string errorText;
     LSCaller caller = LSUtils::acquireCaller(m_serviceName);
-    if (!caller.CallOneReply(m_uri.c_str(), m_payload.c_str(),
-        LSCallItem::handler, this, NULL, errorText))
-    {
+    if (!caller.CallOneReply(m_uri.c_str(), m_payload.c_str(), LSCallItem::handler, this, NULL, errorText)) {
         onError(errorText.c_str());
         return false;
     }
@@ -146,8 +143,8 @@ CallChain& CallChain::acquire(CallCompleteHandler handler, void *user_data)
 }
 
 CallChain::CallChain(CallCompleteHandler handler, void *user_data)
-    : m_handler(handler)
-    , m_user_data(user_data)
+    : m_handler(handler),
+      m_user_data(user_data)
 {
 }
 
@@ -181,8 +178,7 @@ bool CallChain::run(pbnjson::JValue chainData)
 
 bool CallChain::proceed(pbnjson::JValue chainData)
 {
-    if (m_calls.empty())
-    {
+    if (m_calls.empty()) {
         chainData.put("returnValue", true);
         finish(chainData);
         return true;
@@ -191,8 +187,7 @@ bool CallChain::proceed(pbnjson::JValue chainData)
     CallItemPtr call = m_calls.front();
 
     call->setChainData(chainData);
-    if (!call->Call())
-    {
+    if (!call->Call()) {
         return false;
     }
 
@@ -210,12 +205,9 @@ void CallChain::finish(pbnjson::JValue chainData)
 void CallChain::onCallError(std::string errorText)
 {
     CallItemPtr call = m_calls.front();
-    if (!call)
-    {
+    if (!call) {
         finish(makeResult(false, errorText));
-    }
-    else
-    {
+    } else {
         pbnjson::JValue chainData = call->getChainData();
         chainData.put("returnValue", false);
         chainData.put("errorText", errorText);
@@ -226,14 +218,12 @@ void CallChain::onCallError(std::string errorText)
 void CallChain::onCallFinished(bool result, std::string errorText)
 {
     CallItemPtr call = m_calls.front();
-    if ( (m_calls.size() == 0) || (!call) )
-    {
+    if ((m_calls.size() == 0) || (!call)) {
         finish(makeResult(false, "Callchain broken"));
         return;
     }
 
-    if (!errorText.empty())
-    {
+    if (!errorText.empty()) {
         pbnjson::JValue chainData = call->getChainData();
         chainData.put("returnValue", false);
         chainData.put("errorText", errorText);
@@ -244,13 +234,13 @@ void CallChain::onCallFinished(bool result, std::string errorText)
 
     bool processNext = result;
 
-    std::vector<CallConditionPtr>::iterator it = std::find_if(m_conditions.begin(), m_conditions.end(),
-        [=] (const CallConditionPtr p) -> bool { return p->condition_call == call; }
-        );
-    if (it != m_conditions.end())
-    {
-        if (result == (*it)->expected_result)
-        {
+    std::vector<CallConditionPtr>::iterator it =
+        std::find_if(m_conditions.begin(),
+                     m_conditions.end(),
+                     [=] (const CallConditionPtr p) -> bool {return p->condition_call == call;});
+
+    if (it != m_conditions.end()) {
+        if (result == (*it)->expected_result) {
             add((*it)->target_call, true);
             processNext = true;
         }
@@ -259,15 +249,12 @@ void CallChain::onCallFinished(bool result, std::string errorText)
     }
 
     if (!processNext &&
-        ( (call->getOption() & CallItem::OPTION_NONSTOP) == CallItem::OPTION_NONSTOP) )
+        ((call->getOption() & CallItem::OPTION_NONSTOP) == CallItem::OPTION_NONSTOP))
         processNext = true;
 
-    if (processNext)
-    {
+    if (processNext) {
         proceed(call->getChainData());
-    }
-    else
-    {
+    } else {
         pbnjson::JValue chainData = call->getChainData();
         chainData.put("returnValue", false);
         chainData.put("errorText", errorText);

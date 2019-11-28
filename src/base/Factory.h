@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2018 LG Electronics, Inc.
+// Copyright (c) 2015-2019 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,16 +17,16 @@
 #ifndef __FACTORY_H__
 #define __FACTORY_H__
 
-#include <map>
-#include <string>
 #include <functional>
+#include <map>
+#include <memory>
+#include <string>
 
 #include "Singleton.hpp"
 
 //! Factory template class
 template <typename T>
-class Factory : public Singleton<Factory<T> >
-{
+class Factory : public Singleton<Factory<T>> {
 public:
     typedef std::function<T * (void)> Creator;
 

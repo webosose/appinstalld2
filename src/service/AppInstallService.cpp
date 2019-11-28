@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2018 LG Electronics, Inc.
+// Copyright (c) 2013-2019 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,17 +15,17 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "AppInstallService.h"
-#include "installer/AppInstaller.h"
-#include "base/Utils.h"
 #include "base/JUtil.h"
-#include "base/LSUtils.h"
 #include "base/Logging.h"
+#include "base/LSUtils.h"
+#include "base/Utils.h"
+#include "installer/AppInstaller.h"
 #include "settings/Settings.h"
 
 using namespace std::placeholders;
 
-AppInstallService::AppInstallService():
-        ServiceBase(get_service_name())
+AppInstallService::AppInstallService()
+    : ServiceBase(get_service_name())
 {
 }
 
@@ -55,8 +55,7 @@ void AppInstallService::onAttached()
     registerCategory("/", LS_CATEGORY_TABLE_NAME(base), NULL, NULL);
     setCategoryData("/", this);
 
-    if (Settings::instance().m_isDevMode)
-    {
+    if (Settings::instance().isDevMode()) {
         LS_CREATE_CATEGORY_BEGIN(AppInstallService, dev)
             LS_CATEGORY_MAPPED_METHOD(install, cb_dev_install)
             LS_CATEGORY_MAPPED_METHOD(remove, cb_dev_remove)
@@ -75,10 +74,9 @@ bool AppInstallService::cb_install(LSMessage &message)
 {
     JUtil::Error error;
     Message request(&message);
-    pbnjson::JValue json = JUtil::parse(request.getPayload(),"appInstallService.install", &error);
+    pbnjson::JValue json = JUtil::parse(request.getPayload(), "appInstallService.install", &error);
 
-    if (json.isNull())
-    {
+    if (json.isNull()) {
         return LSUtils::replyError(&request, APP_INSTALL_ERR_BADPARAM, error.detail());
     }
 
@@ -103,11 +101,12 @@ bool AppInstallService::cb_install(LSMessage &message)
     int errorCode = 0;
     std::string errorText;
 
-    if (!AppInstaller::instance().install(id, ipkUrl, appInfo, errorCode, errorText))
-    {
-        LOG_ERROR(MSGID_APP_INSTALL_ERR, 3, PMLOGKS(APP_ID, id.c_str()),
-                                            PMLOGKFV(LOGKEY_ERRCODE, "%d", errorCode),
-                                            PMLOGKS(LOGKEY_ERRTEXT, errorText.c_str()), "Application install failed");
+    if (!AppInstaller::instance().install(id, ipkUrl, appInfo, errorCode, errorText)) {
+        LOG_ERROR(MSGID_APP_INSTALL_ERR, 3,
+                  PMLOGKS(APP_ID, id.c_str()),
+                  PMLOGKFV(LOGKEY_ERRCODE, "%d", errorCode),
+                  PMLOGKS(LOGKEY_ERRTEXT, errorText.c_str()),
+                  "Application install failed");
 
         return LSUtils::replyError(&request, errorCode, errorText);
     }
@@ -115,19 +114,21 @@ bool AppInstallService::cb_install(LSMessage &message)
     LSError lserror;
     bool subscribed = false;
     if (request.isSubscription())
-        subscribed = LSSubscriptionAdd(Handle::get(),(std::string("status_")+id).c_str(), &message, &lserror);
+        subscribed = LSSubscriptionAdd(Handle::get(),
+                                       (std::string("status_") + id).c_str(),
+                                       &message,
+                                       &lserror);
 
     pbnjson::JValue reply = pbnjson::Object();
     reply.put("returnValue", true);
     reply.put("subscribed", subscribed);
 
-    try
-    {
+    try {
         request.respond(JUtil::toSimpleString(reply).c_str());
-    }
-    catch (const LS::Error &lserror)
-    {
-        LOG_ERROR(MSGID_LSCALL_ERR, 1, PMLOGKS("[AppInstallService]-install", lserror.what()), "");
+    } catch (const LS::Error &lserror) {
+        LOG_ERROR(MSGID_LSCALL_ERR, 1,
+                  PMLOGKS("[AppInstallService]-install", lserror.what()),
+                  "");
         return false;
     }
 
@@ -138,10 +139,9 @@ bool AppInstallService::cb_remove(LSMessage &message)
 {
     JUtil::Error error;
     Message request(&message);
-    pbnjson::JValue json = JUtil::parse(request.getPayload(),"appInstallService.remove", &error);
+    pbnjson::JValue json = JUtil::parse(request.getPayload(), "appInstallService.remove", &error);
 
-    if (json.isNull())
-    {
+    if (json.isNull()) {
         return LSUtils::replyError(&request, APP_INSTALL_ERR_BADPARAM, error.detail());
     }
 
@@ -162,29 +162,30 @@ bool AppInstallService::cb_remove(LSMessage &message)
     int errorCode = 0;
     std::string errorText;
 
-    if (!AppInstaller::instance().remove(id, appInfo, errorCode, errorText))
-    {
-        LOG_ERROR(MSGID_APP_REMOVE_ERR, 3, PMLOGKS(APP_ID, id.c_str()),
-                                           PMLOGKFV(LOGKEY_ERRCODE, "%d", errorCode),
-                                           PMLOGKS(LOGKEY_ERRTEXT, errorText.c_str()), "Application remove failed");
+    if (!AppInstaller::instance().remove(id, appInfo, errorCode, errorText)) {
+        LOG_ERROR(MSGID_APP_REMOVE_ERR, 3,
+                  PMLOGKS(APP_ID, id.c_str()),
+                  PMLOGKFV(LOGKEY_ERRCODE, "%d", errorCode),
+                  PMLOGKS(LOGKEY_ERRTEXT, errorText.c_str()),
+                  "Application remove failed");
         return LSUtils::replyError(&request, errorCode, errorText);
     }
 
     LSError lserror;
     bool subscribed = false;
     if (request.isSubscription())
-        subscribed = LSSubscriptionAdd(Handle::get(),(std::string("status_")+id).c_str(), &message, &lserror);
+        subscribed = LSSubscriptionAdd(Handle::get(),
+                                       (std::string("status_") + id).c_str(),
+                                       &message,
+                                       &lserror);
 
     pbnjson::JValue reply = pbnjson::Object();
     reply.put("returnValue", true);
     reply.put("subscribed", subscribed);
 
-    try
-    {
+    try {
         request.respond(JUtil::toSimpleString(reply).c_str());
-    }
-    catch (const LS::Error &lserror)
-    {
+    } catch (const LS::Error &lserror) {
         LOG_ERROR(MSGID_LSCALL_ERR, 1, PMLOGKS("[AppInstallService]-remove", lserror.what()), "");
         return false;
     }
@@ -196,17 +197,16 @@ bool AppInstallService::cb_status(LSMessage &message)
 {
     JUtil::Error error;
     Message request(&message);
-    pbnjson::JValue json = JUtil::parse(request.getPayload(),"appInstallService.status", &error);
+    pbnjson::JValue json = JUtil::parse(request.getPayload(), "appInstallService.status", &error);
 
-    if (json.isNull())
-    {
-       return LSUtils::replyError(&request, APP_INSTALL_ERR_BADPARAM, error.detail());
+    if (json.isNull()) {
+        return LSUtils::replyError(&request, APP_INSTALL_ERR_BADPARAM, error.detail());
     }
 
     LSError lserror;
     bool subscribed = false;
     if (request.isSubscription())
-        subscribed = LSSubscriptionAdd(Handle::get(),"status", &message, &lserror);
+        subscribed = LSSubscriptionAdd(Handle::get(), "status", &message, &lserror);
 
     pbnjson::JValue reply = pbnjson::Object();
     pbnjson::JValue status = pbnjson::Object();
@@ -215,27 +215,23 @@ bool AppInstallService::cb_status(LSMessage &message)
     reply.put("returnValue", true);
     reply.put("subscribed", subscribed);
 
-    try
-    {
-       request.respond(JUtil::toSimpleString(reply).c_str());
-    }
-    catch (const LS::Error &lserror)
-    {
-       LOG_ERROR(MSGID_LSCALL_ERR, 1, PMLOGKS("[AppInstallService]-status", lserror.what()), "");
-       return false;
+    try {
+        request.respond(JUtil::toSimpleString(reply).c_str());
+    } catch (const LS::Error &lserror) {
+        LOG_ERROR(MSGID_LSCALL_ERR, 1, PMLOGKS("[AppInstallService]-status", lserror.what()), "");
+        return false;
     }
 
-   return true;
+    return true;
 }
 
 bool AppInstallService::cb_dev_install(LSMessage &message)
 {
     JUtil::Error error;
     Message request(&message);
-    pbnjson::JValue json = JUtil::parse(request.getPayload(),"appInstallService.dev.install", &error);
+    pbnjson::JValue json = JUtil::parse(request.getPayload(), "appInstallService.dev.install", &error);
 
-    if (json.isNull())
-    {
+    if (json.isNull()) {
         return LSUtils::replyError(&request, APP_INSTALL_ERR_BADPARAM, error.detail());
     }
 
@@ -249,7 +245,7 @@ bool AppInstallService::cb_dev_install(LSMessage &message)
         return LSUtils::replyError(&request, APP_INSTALL_ERR_BADPARAM, "ipkUrl is empty");
 
     pbnjson::JValue details = json;
-    if(!details["subscribe"].isNull())
+    if (!details["subscribe"].isNull())
         details.remove("subscribe");
     details.put("client", LSUtils::getCallerId(&request));
 
@@ -257,16 +253,19 @@ bool AppInstallService::cb_dev_install(LSMessage &message)
     appInfo.put("id", id);
     appInfo.put("details", details);
 
-    LOG_INFO(MSGID_APP_INSTALL_REQ, 1, PMLOGKS(APP_ID, id.c_str()), "Dev application install request received");
+    LOG_INFO(MSGID_APP_INSTALL_REQ, 1,
+             PMLOGKS(APP_ID, id.c_str()),
+             "Dev application install request received");
 
     int errorCode = 0;
     std::string errorText;
 
-    if (!AppInstaller::instance().install(id, ipkUrl, appInfo, errorCode, errorText, false))
-    {
-        LOG_ERROR(MSGID_APP_INSTALL_ERR, 3, PMLOGKS(APP_ID, id.c_str()),
-                                            PMLOGKFV(LOGKEY_ERRCODE, "%d", errorCode),
-                                            PMLOGKS(LOGKEY_ERRTEXT, errorText.c_str()), "Application dev/install failed");
+    if (!AppInstaller::instance().install(id, ipkUrl, appInfo, errorCode, errorText, false)) {
+        LOG_ERROR(MSGID_APP_INSTALL_ERR, 3,
+                  PMLOGKS(APP_ID, id.c_str()),
+                  PMLOGKFV(LOGKEY_ERRCODE, "%d", errorCode),
+                  PMLOGKS(LOGKEY_ERRTEXT, errorText.c_str()),
+                  "Application dev/install failed");
 
         return LSUtils::replyError(&request, errorCode, errorText);
     }
@@ -274,18 +273,18 @@ bool AppInstallService::cb_dev_install(LSMessage &message)
     LSError lserror;
     bool subscribed = false;
     if (request.isSubscription())
-        subscribed = LSSubscriptionAdd(Handle::get(),(std::string("status_")+id).c_str(), &message, &lserror);
+        subscribed = LSSubscriptionAdd(Handle::get(),
+                                       (std::string("status_") + id).c_str(),
+                                       &message,
+                                       &lserror);
 
     pbnjson::JValue reply = pbnjson::Object();
     reply.put("returnValue", true);
     reply.put("subscribed", subscribed);
 
-    try
-    {
+    try {
         request.respond(JUtil::toSimpleString(reply).c_str());
-    }
-    catch (const LS::Error &lserror)
-    {
+    } catch (const LS::Error &lserror) {
         LOG_ERROR(MSGID_LSCALL_ERR, 1, PMLOGKS("[AppInstallService]-dev/install", lserror.what()), "");
         return false;
     }
@@ -297,10 +296,9 @@ bool AppInstallService::cb_dev_remove(LSMessage &message)
 {
     JUtil::Error error;
     Message request(&message);
-    pbnjson::JValue json = JUtil::parse(request.getPayload(),"appInstallService.dev.remove", &error);
+    pbnjson::JValue json = JUtil::parse(request.getPayload(), "appInstallService.dev.remove", &error);
 
-    if (json.isNull())
-    {
+    if (json.isNull()) {
         return LSUtils::replyError(&request, APP_INSTALL_ERR_BADPARAM, error.detail());
     }
 
@@ -310,7 +308,7 @@ bool AppInstallService::cb_dev_remove(LSMessage &message)
         return LSUtils::replyError(&request, APP_INSTALL_ERR_BADPARAM, "id is empty");
 
     pbnjson::JValue details = pbnjson::Object();
-    if(!details["subscribe"].isNull())
+    if (!details["subscribe"].isNull())
         details.remove("subscribe");
     details.put("client", LSUtils::getCallerId(&request));
 
@@ -318,34 +316,37 @@ bool AppInstallService::cb_dev_remove(LSMessage &message)
     appInfo.put("id", id);
     appInfo.put("details", details);
 
-    LOG_INFO(MSGID_APP_REMOVE_REQ, 1, PMLOGKS(APP_ID, id.c_str()), "Dev application remove request received");
+    LOG_INFO(MSGID_APP_REMOVE_REQ, 1,
+             PMLOGKS(APP_ID, id.c_str()),
+             "Dev application remove request received");
 
     int errorCode = 0;
     std::string errorText;
 
-    if (!AppInstaller::instance().remove(id, appInfo, errorCode, errorText, false))
-    {
-        LOG_ERROR(MSGID_APP_REMOVE_ERR, 3, PMLOGKS(APP_ID, id.c_str()),
-                                           PMLOGKFV(LOGKEY_ERRCODE, "%d", errorCode),
-                                           PMLOGKS(LOGKEY_ERRTEXT, errorText.c_str()), "Application dev/remove failed");
+    if (!AppInstaller::instance().remove(id, appInfo, errorCode, errorText, false)) {
+        LOG_ERROR(MSGID_APP_REMOVE_ERR, 3,
+                  PMLOGKS(APP_ID, id.c_str()),
+                  PMLOGKFV(LOGKEY_ERRCODE, "%d", errorCode),
+                  PMLOGKS(LOGKEY_ERRTEXT, errorText.c_str()),
+                  "Application dev/remove failed");
         return LSUtils::replyError(&request, errorCode, errorText);
     }
 
     LSError lserror;
     bool subscribed = false;
     if (request.isSubscription())
-        subscribed = LSSubscriptionAdd(Handle::get(),(std::string("status_")+id).c_str(), &message, &lserror);
+        subscribed = LSSubscriptionAdd(Handle::get(),
+                                       (std::string("status_") + id).c_str(),
+                                       &message,
+                                       &lserror);
 
     pbnjson::JValue reply = pbnjson::Object();
     reply.put("returnValue", true);
     reply.put("subscribed", subscribed);
 
-    try
-    {
+    try {
         request.respond(JUtil::toSimpleString(reply).c_str());
-    }
-    catch (const LS::Error &lserror)
-    {
+    } catch (const LS::Error &lserror) {
         LOG_ERROR(MSGID_LSCALL_ERR, 1, PMLOGKS("[AppInstallService]-dev/remove", lserror.what()), "");
         return false;
     }

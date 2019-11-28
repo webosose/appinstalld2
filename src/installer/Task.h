@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2018 LG Electronics, Inc.
+// Copyright (c) 2013-2019 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,29 +17,24 @@
 #ifndef TASK_H
 #define TASK_H
 
-#include <map>
 #include <boost/signals2.hpp>
+#include <map>
 #include <pbnjson.hpp>
-#include "step/Step.h"
 
 #include "InstallHistory.h"
+#include "step/Step.h"
+
 class Step;
 
-class Task
-{
-protected:
-    typedef std::pair<TaskStep, TaskStep> make_status_pair;
-
+class Task {
 public:
-    typedef enum
-    {
+    typedef enum {
         SUCCESS = 0,
         BUSY,
         FAIL
     } Result;
 
-    typedef enum
-    {
+    typedef enum {
         NONE = 0,
         SYSTEM, // paused by opkg
         AUTH, // paused by authentication
@@ -88,13 +83,13 @@ public:
     std::string getSender() const;
 
     //! signal for notify started
-    boost::signals2::signal<void (const Task&)> signalStarted;
+    boost::signals2::signal<void(const Task&)> signalStarted;
 
     //! signal for status changed
-    boost::signals2::signal<void (const Task&)> signalStatusChanged;
+    boost::signals2::signal<void(const Task&)> signalStatusChanged;
 
     //! signal for notify finished
-    boost::signals2::signal<void (const Task&)> signalFinished;
+    boost::signals2::signal<void(const Task&)> signalFinished;
 
     //! get whether error has occured
     bool isError() const;
@@ -159,6 +154,8 @@ public:
     bool isUpdate() const;
 
 protected:
+    typedef std::pair<TaskStep, TaskStep> make_status_pair;
+
     //! accept task
     bool onAccept(pbnjson::JValue param);
 
@@ -171,20 +168,17 @@ protected:
     std::shared_ptr<Step> createStep(const TaskStep step);
 
 private:
-    struct Status
-    {
+    struct Status {
         Status()
-            : reason(NONE)
-            , status(false)
-            , requested(false)
-            {}
+                : reason(NONE), status(false), requested(false)
+        {
+        }
 
         Reason reason;
         bool status;
         bool requested;
     };
 
-private:
     std::string m_appId;
     std::string m_name;
     pbnjson::JValue m_appInfo;

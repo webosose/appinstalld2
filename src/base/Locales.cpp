@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2018 LG Electronics, Inc.
+// Copyright (c) 2013-2019 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 #include <unicode/locid.h>
 
-#include "Locales.h"
 #include "JUtil.h"
+#include "Locales.h"
 #include "settings/Settings.h"
 
 Locales::Locales()
@@ -47,7 +47,7 @@ std::string Locales::region() const
 
 void Locales::load()
 {
-    pbnjson::JValue info = JUtil::parseFile(Settings::instance().m_localePath, std::string(""));
+    pbnjson::JValue info = JUtil::parseFile(Settings::instance().getLocalePath(), std::string(""));
     if (info.isNull())
         return;
 

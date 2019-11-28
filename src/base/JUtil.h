@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2018 LG Electronics, Inc.
+// Copyright (c) 2013-2019 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,21 +17,19 @@
 #ifndef JUTIL_H
 #define JUTIL_H
 
+#include <map>
 #include <pbnjson.hpp>
 #include <string>
-#include <map>
+
 #include "base/Singleton.hpp"
 
 //! List of utilites for pbnjson
-class JUtil : public Singleton<JUtil>
-{
+class JUtil : public Singleton<JUtil> {
 public:
     //! Error class used in JUtil
-    class Error
-    {
+    class Error {
     public:
-        typedef enum
-        {
+        typedef enum {
             None = 0,
             File_Io,
             Schema,
@@ -48,7 +46,7 @@ public:
         std::string detail();
 
     private:
-        friend class JUtil;
+    friend class JUtil;
 
         /*! Set Error code and detail string.
          * If detail value is NULL, detail value set as default error message.
@@ -63,24 +61,24 @@ public:
     /*! Parse given json data using schema.
      * If schemaName is empty, use JSchemaFragment("{}")
      */
-    static pbnjson::JValue    parse(const char *rawData, const std::string &schemaName, Error *error = NULL);
+    static pbnjson::JValue parse(const char *rawData, const std::string &schemaName, Error *error = NULL);
 
     /*! Parse given json file path using schema.
      * If schemaName is empty, use JSchemaFragment("{}")
      */
-    static pbnjson::JValue    parseFile(const std::string &path, const std::string &schemaName, Error *error = NULL);
+    static pbnjson::JValue parseFile(const std::string &path, const std::string &schemaName, Error *error = NULL);
 
     //! Make pbnjson::JValue to std::string
-    static std::string        toSimpleString(pbnjson::JValue json);
+    static std::string toSimpleString(pbnjson::JValue json);
 
     /*! Load schema from file.
      * If schemaName is empty, return JSchemaFragment("{}")
      * If cache set, find cache first and if not exist in cache load schema and store it.
      */
-    pbnjson::JSchema          loadSchema(const std::string &schemaName, bool cache);
+    pbnjson::JSchema loadSchema(const std::string &schemaName, bool cache);
 
 protected:
-    friend class Singleton<JUtil>;
+friend class Singleton<JUtil>;
 
     //! Constructor
     JUtil();

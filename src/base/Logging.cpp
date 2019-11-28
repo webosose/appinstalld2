@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2018 LG Electronics, Inc.
+// Copyright (c) 2013-2019 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,8 +20,7 @@
 PmLogContext getPmLogContext()
 {
     static PmLogContext logContext = 0;
-    if (0 == logContext)
-    {
+    if (0 == logContext) {
         PmLogGetContext("AppInstallD", &logContext);
     }
     return logContext;
@@ -30,8 +29,7 @@ PmLogContext getPmLogContext()
 PmLogContext getPmLogHistoryContext()
 {
     static PmLogContext loghistoryContext = 0;
-    if (0 == loghistoryContext)
-    {
+    if (0 == loghistoryContext) {
         PmLogGetContext("AppInstallD.history", &loghistoryContext);
     }
     return loghistoryContext;

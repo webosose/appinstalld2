@@ -50,7 +50,7 @@ bool IpkRemoveStep::proceed(Task *task)
     // read services
     {
         std::string packagePath = Settings::instance().getInstallPath(verify) +
-            Settings::instance().m_packageinstallPath +
+            Settings::instance().getPackageinstallPath() +
             std::string("/") + m_parentTask->getAppId();
 
         PackageInfo packageInfo(packagePath);
@@ -61,7 +61,7 @@ bool IpkRemoveStep::proceed(Task *task)
     if (verify && appServices.empty())
     {
         std::string packagePath = Settings::instance().getInstallPath(false) +
-            Settings::instance().m_packageinstallPath +
+            Settings::instance().getPackageinstallPath() +
             std::string("/") + m_parentTask->getAppId();
 
         PackageInfo packageInfo(packagePath);

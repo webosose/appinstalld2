@@ -14,14 +14,14 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#include "webospaths.h"
+#include <mntent.h>
+#include <stdio.h>
+#include <string.h>
+
+#include "settings/Settings.h"
 #include "System.h"
 #include "Utils.h"
-#include "settings/Settings.h"
-
-#include <stdio.h>
-#include <mntent.h>
-#include <string.h>
+#include "webospaths.h"
 
 int System::kill(const unsigned int pid, bool recursive)
 {

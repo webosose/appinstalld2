@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2018 LG Electronics, Inc.
+// Copyright (c) 2013-2019 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,9 +15,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "JUtil.h"
-#include "Utils.h"
 #include "Logging.h"
 #include "settings/Settings.h"
+#include "Utils.h"
 
 JUtil::Error::Error()
     : m_code(Error::None)
@@ -37,19 +37,27 @@ std::string JUtil::Error::detail()
 void JUtil::Error::set(ErrorCode code, const char *detail)
 {
     m_code = code;
-    if (!detail)
-    {
-        switch(m_code)
-        {
-            case Error::None:    m_detail = "Success"; break;
-            case Error::File_Io: m_detail = "Fail to read file"; break;
-            case Error::Schema:  m_detail = "Fail to read schema"; break;
-            case Error::Parse:   m_detail = "Fail to parse json"; break;
-            default:             m_detail = "Unknown error"; break;
+    if (!detail) {
+        switch (m_code) {
+            case Error::None:
+                m_detail = "Success";
+                break;
+            case Error::File_Io:
+                m_detail = "Fail to read file";
+                break;
+            case Error::Schema:
+                m_detail = "Fail to read schema";
+                break;
+            case Error::Parse:
+                m_detail = "Fail to parse json";
+                break;
+            default:
+                m_detail = "Unknown error";
+                break;
         }
-    }
-    else
+    } else {
         m_detail = detail;
+    }
 }
 
 JUtil::JUtil()
@@ -63,30 +71,35 @@ JUtil::~JUtil()
 pbnjson::JValue JUtil::parse(const char *rawData, const std::string &schemaName, Error *error)
 {
     pbnjson::JSchema schema = JUtil::instance().loadSchema(schemaName, true);
-    if (!schema.isInitialized())
-    {
-        if (error) error->set(Error::Schema);
+    if (!schema.isInitialized()) {
+        if (error)
+            error->set(Error::Schema);
+
         return pbnjson::JValue();
     }
 
     pbnjson::JInput input(rawData);
     pbnjson::JDomParser parser;
-    if (!parser.parse(input, schema))
-    {
-        if (error) error->set(Error::Parse, parser.getError());
+    if (!parser.parse(input, schema)) {
+        if (error)
+            error->set(Error::Parse, parser.getError());
+
         return pbnjson::JValue();
     }
 
-    if (error) error->set(Error::None);
+    if (error)
+        error->set(Error::None);
+
     return parser.getDom();
 }
 
 pbnjson::JValue JUtil::parseFile(const std::string &path, const std::string &schemaName, Error *error)
 {
     std::string rawData = Utils::read_file(path);
-    if (rawData.empty())
-    {
-        if (error) error->set(Error::File_Io);
+    if (rawData.empty()) {
+        if (error)
+            error->set(Error::File_Io);
+
         return pbnjson::JValue();
     }
 
@@ -103,20 +116,18 @@ pbnjson::JSchema JUtil::loadSchema(const std::string& schemaName, bool cache)
     if (schemaName.empty())
         return pbnjson::JSchemaFragment("{}");
 
-    if (cache)
-    {
-        std::map< std::string, pbnjson::JSchema >::iterator it = m_mapSchema.find(schemaName);
+    if (cache) {
+        std::map<std::string, pbnjson::JSchema>::iterator it = m_mapSchema.find(schemaName);
         if (it != m_mapSchema.end())
             return it->second;
     }
 
-    pbnjson::JSchema schema = pbnjson::JSchemaFile(Settings::instance().m_schemaPath + schemaName + ".schema");
+    pbnjson::JSchema schema = pbnjson::JSchemaFile(Settings::instance().getSchemaPath() + schemaName + ".schema");
     if (!schema.isInitialized())
         return schema;
 
-    if (cache)
-    {
-        m_mapSchema.insert( std::pair< std::string, pbnjson::JSchema >(schemaName, schema) );
+    if (cache) {
+        m_mapSchema.insert(std::pair< std::string, pbnjson::JSchema >(schemaName, schema));
     }
 
     return schema;

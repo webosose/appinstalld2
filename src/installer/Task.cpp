@@ -14,37 +14,38 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#include "step/IpkParseStep.h"
-#include "step/GetIpkInfoStep.h"
+#include <cinttypes>
+
+#include "base/Creator.h"
+#include "base/Factory.h"
+#include "base/Logging.h"
+#include "base/Utils.h"
 #include "step/AppCloseStep.h"
 #include "step/DataRemoveStep.h"
+#include "step/GetIpkInfoStep.h"
 #include "step/IpkInstallStep.h"
+#include "step/IpkParseStep.h"
 #include "step/IpkRemoveStep.h"
 #include "step/RemoveJailStep.h"
 #include "step/RemoveStartStep.h"
 #include "step/ServiceInstallStep.h"
 #include "step/ServiceUninstallStep.h"
 #include "Task.h"
-#include "base/Logging.h"
-#include "base/Utils.h"
-#include "base/Creator.h"
-#include "base/Factory.h"
-#include <cinttypes>
 
 typedef Factory<Step> StepFactory;
 
 Task::Task()
-    : m_errorCode(0)
-    , m_step(Unknown)
-    , m_finished(false)
-    , m_run(false)
-    , m_hasInstalledSizeWithControlFile(false)
-    , m_unpackFileSize(0)
-    , m_packFileSize(0)
-    , m_unpacked(false)
-    , m_allowReInstall(false)
-    , m_update(false)
-    , m_verify(false)
+        : m_errorCode(0),
+          m_step(Unknown),
+          m_finished(false),
+          m_run(false),
+          m_hasInstalledSizeWithControlFile(false),
+          m_unpackFileSize(0),
+          m_packFileSize(0),
+          m_unpacked(false),
+          m_allowReInstall(false),
+          m_update(false),
+          m_verify(false)
 {
     LOG_DEBUG("Task::Task() called\n");
 }
@@ -56,30 +57,32 @@ Task::~Task()
 
 bool Task::initialize(pbnjson::JValue param)
 {
-    m_appId    = param["id"].asString();
-    m_name     = param["name"].asString();
-    m_appInfo  = param["appinfo"];
-    m_verify   = param["verify"].asBool();
-    m_param    = param.duplicate();
+    m_appId = param["id"].asString();
+    m_name = param["name"].asString();
+    m_appInfo = param["appinfo"];
+    m_verify = param["verify"].asBool();
+    m_param = param.duplicate();
 
-    StepFactory::instance().registerObject("IpkParseNeeded", CreatorUsingNew<IpkParseStep>() );
-    StepFactory::instance().registerObject("GetIpkInfoNeeded", CreatorUsingNew<GetIpkInfoStep>() );
-    StepFactory::instance().registerObject("AppCloseNeeded", CreatorUsingNew<AppCloseStep>() );
-    StepFactory::instance().registerObject("IpkInstallNeeded", CreatorUsingNew<IpkInstallStep>() );
-    StepFactory::instance().registerObject("ServiceInstallNeeded", CreatorUsingNew<ServiceInstallStep>() );
-    StepFactory::instance().registerObject("RemoveNeeded", CreatorUsingNew<RemoveStartStep>() );
-    StepFactory::instance().registerObject("RemoveJailNeeded", CreatorUsingNew<RemoveJailStep>() );
-    StepFactory::instance().registerObject("ServiceUninstallNeeded", CreatorUsingNew<ServiceUninstallStep>() );
-    StepFactory::instance().registerObject("IpkRemoveNeeded", CreatorUsingNew<IpkRemoveStep>() );
-    StepFactory::instance().registerObject("DataRemoveNeeded", CreatorUsingNew<DataRemoveStep>() );
+    StepFactory::instance().registerObject("IpkParseNeeded", CreatorUsingNew<IpkParseStep>());
+    StepFactory::instance().registerObject("GetIpkInfoNeeded", CreatorUsingNew<GetIpkInfoStep>());
+    StepFactory::instance().registerObject("AppCloseNeeded", CreatorUsingNew<AppCloseStep>());
+    StepFactory::instance().registerObject("IpkInstallNeeded", CreatorUsingNew<IpkInstallStep>());
+    StepFactory::instance().registerObject("ServiceInstallNeeded", CreatorUsingNew<ServiceInstallStep>());
+    StepFactory::instance().registerObject("RemoveNeeded", CreatorUsingNew<RemoveStartStep>());
+    StepFactory::instance().registerObject("RemoveJailNeeded", CreatorUsingNew<RemoveJailStep>());
+    StepFactory::instance().registerObject("ServiceUninstallNeeded", CreatorUsingNew<ServiceUninstallStep>());
+    StepFactory::instance().registerObject("IpkRemoveNeeded", CreatorUsingNew<IpkRemoveStep>());
+    StepFactory::instance().registerObject("DataRemoveNeeded", CreatorUsingNew<DataRemoveStep>());
 
     return true;
 }
 
 bool Task::accept(pbnjson::JValue param)
 {
-    if (m_appId != param["id"].asString())    return false;
-    if (m_name != param["name"].asString())   return false;
+    if (m_appId != param["id"].asString())
+        return false;
+    if (m_name != param["name"].asString())
+        return false;
 
     return onAccept(param);
 }
@@ -92,8 +95,7 @@ bool Task::onAccept(pbnjson::JValue param)
 bool Task::run()
 {
     m_run = true;
-    Utils::async([=]
-    {
+    Utils::async([=] {
         //signalStarted(*this);
         LOG_DEBUG("Task::run\n");
         proceed();
@@ -120,13 +122,12 @@ void Task::setError(TaskStep status, int errorCode, std::string errorText)
     m_errorText = errorText;
 
     LOG_ERROR(MSGID_TASK_ERROR, 3,
-        PMLOGKS(APP_ID, getAppId().c_str()),
-        PMLOGKFV(LOGKEY_ERRCODE, "%d", errorCode),
-        PMLOGKS(LOGKEY_ERRTEXT, errorText.c_str()),
-        "");
+              PMLOGKS(APP_ID, getAppId().c_str()),
+              PMLOGKFV(LOGKEY_ERRCODE, "%d", errorCode),
+              PMLOGKS(LOGKEY_ERRTEXT, errorText.c_str()),
+              "");
 
-    switch(status)
-    {
+    switch (status) {
         case ErrorInstall:
             //remove installDataPath for removing control files
             Utils::remove_dir(m_installBasePath + "/tmp/" + m_appId);
@@ -262,17 +263,16 @@ std::string Task::getName() const
 pbnjson::JValue Task::toJValue() const
 {
     pbnjson::JValue json = getAppInfo();
-    json.put("statusValue", (int)getStep());
+    json.put("statusValue", (int) getStep());
 
     pbnjson::JValue details = json["details"];
-    if (details.isNull())
-     {
-         details = pbnjson::Object();
-         json.put("details", details);
-     }
+    if (details.isNull()) {
+        details = pbnjson::Object();
+        json.put("details", details);
+    }
 
-     if (!details["id"].isNull())
-             details.remove("id");
+    if (!details["id"].isNull())
+        details.remove("id");
 
     //common fields
     details.put("packageId", m_packageId);
@@ -282,108 +282,104 @@ pbnjson::JValue Task::toJValue() const
         details.put("installBasePath", m_installBasePath);
 
     TaskStep step = getStep();
-    if (step == InstallComplete)
-    {
+    if (step == InstallComplete) {
         LOG_NORMAL(MSGID_APP_INSTALLED, 2,
-            PMLOGKS(APP_ID, getAppId().c_str()),
-            PMLOGKS(CALLER, json["details"]["client"].asString().c_str()),
-            "");
-    }
-    else if (step == RemoveComplete)
-    {
+                   PMLOGKS(APP_ID, getAppId().c_str()),
+                   PMLOGKS(CALLER, json["details"]["client"].asString().c_str()),
+                   "");
+    } else if (step == RemoveComplete) {
         LOG_INFO(MSGID_APP_REMOVED, 2,
-            PMLOGKS(APP_ID, getAppId().c_str()),
-            PMLOGKS(CALLER, json["details"]["client"].asString().c_str()),
-            "");
+                 PMLOGKS(APP_ID, getAppId().c_str()),
+                 PMLOGKS(CALLER, json["details"]["client"].asString().c_str()),
+                 "");
     }
 
     //TODO : Move details definition to installHistory.h
-    switch (step)
-    {
-    case IpkParseNeeded:
-    case IpkParseRequested:
-    case IpkParseComplete:
-        details.put("state", "ipk parsing");
-        break;
+    switch (step) {
+        case IpkParseNeeded:
+        case IpkParseRequested:
+        case IpkParseComplete:
+            details.put("state", "ipk parsing");
+            break;
 
-    case IpkInstallNeeded:
-    case IpkInstallRequested:
-        details.put("state", "installing");
-        break;
+        case IpkInstallNeeded:
+        case IpkInstallRequested:
+            details.put("state", "installing");
+            break;
 
-    case IpkInstallStarting:
-        details.put("state", "installing : start");
-        break;
+        case IpkInstallStarting:
+            details.put("state", "installing : start");
+            break;
 
-    case AppCloseNeeded:
-    case AppCloseRequested:
-    case AppCloseComplete:
-        details.put("state", "app closing");
-        break;
+        case AppCloseNeeded:
+        case AppCloseRequested:
+        case AppCloseComplete:
+            details.put("state", "app closing");
+            break;
 
-    case InstallComplete:
-        details.put("state", "installed");
-        details.put("progress", 100);
-        break;
+        case InstallComplete:
+            details.put("state", "installed");
+            details.put("progress", 100);
+            break;
 
-    case ErrorInstall:
-        details.put("state", "install failed");
-        details.put("errorCode", getErrorCode());
-        details.put("reason", getErrorText());
-        break;
+        case ErrorInstall:
+            details.put("state", "install failed");
+            details.put("errorCode", getErrorCode());
+            details.put("reason", getErrorText());
+            break;
 
-    case IpkRemoveNeeded:
-    case IpkRemoveRequested:
-    case IpkRemoveStarted:
-    case IpkRemoveComplete:
-        details.put("state", "removing ipk");
-        details.put("progress", 0);
-        break;
+        case IpkRemoveNeeded:
+        case IpkRemoveRequested:
+        case IpkRemoveStarted:
+        case IpkRemoveComplete:
+            details.put("state", "removing ipk");
+            details.put("progress", 0);
+            break;
 
-    case ServiceUninstallNeeded:
-    case ServiceUninstallRequested:
-    case ServiceUninstallComplete:
-        details.put("state", "removing service files");
-        details.put("progress", 0);
-        break;
+        case ServiceUninstallNeeded:
+        case ServiceUninstallRequested:
+        case ServiceUninstallComplete:
+            details.put("state", "removing service files");
+            details.put("progress", 0);
+            break;
 
-    case RemoveComplete:
-        details.put("state", "removed");
-        details.put("progress", 100);
-        break;
+        case RemoveComplete:
+            details.put("state", "removed");
+            details.put("progress", 100);
+            break;
 
-    case ErrorRemove:
-        details.put("state", "remove failed");
-        details.put("reason", getErrorText());
-        break;
+        case ErrorRemove:
+            details.put("state", "remove failed");
+            details.put("reason", getErrorText());
+            break;
 
-    case RemoveNeeded:
-        details.put("state", "remove start");
-        details.put("progress", 0);
-        break;
+        case RemoveNeeded:
+            details.put("state", "remove start");
+            details.put("progress", 0);
+            break;
 
-    case RemoveStarted:
-        details.put("state", "removing");
-        details.put("progress", 0);
-        break;
+        case RemoveStarted:
+            details.put("state", "removing");
+            details.put("progress", 0);
+            break;
 
-    case RemoveJailNeeded:
-    case RemoveJailRequested:
-    case RemoveJailComplete:
-        details.put("state", "removing jail");
-        details.put("progress", 0);
-        break;
+        case RemoveJailNeeded:
+        case RemoveJailRequested:
+        case RemoveJailComplete:
+            details.put("state", "removing jail");
+            details.put("progress", 0);
+            break;
 
-    case DataRemoveNeeded:
-    case DataRemoveRequested:
-    case DataRemoveComplete:
-        details.put("state", "removing data");
-        details.put("progress", 0);
-        break;
+        case DataRemoveNeeded:
+        case DataRemoveRequested:
+        case DataRemoveComplete:
+            details.put("state", "removing data");
+            details.put("progress", 0);
+            break;
 
-    case Unknown:
-    default:
-        break;
+        case Unknown:
+        default:
+            break;
     }
 
     return json;
@@ -417,12 +413,11 @@ bool Task::proceed()
         return true;
 
     std::map<TaskStep, TaskStep>::iterator it = m_mapStep.find(m_step);
-    if (it == m_mapStep.end())
-    {
+    if (it == m_mapStep.end()) {
         LOG_WARNING(MSGID_STATUS_CHANGE_UNDEFINED, 2,
-            PMLOGKS(APP_ID, getAppId().c_str()),
-            PMLOGKFV(STATUS,"%d",m_step),
-            "");
+                    PMLOGKS(APP_ID, getAppId().c_str()),
+                    PMLOGKFV(STATUS,"%d",m_step),
+                    "");
         finish();
         return false;
     }
@@ -435,7 +430,6 @@ bool Task::proceed()
     return success;
 }
 
-
 std::shared_ptr<Step> Task::createStep(TaskStep step)
 {
     TaskStepParser parser;
@@ -447,9 +441,8 @@ bool Task::onProceed(TaskStep step)
 {
     TaskStepParser parser;
     bool success = false;
-    m_currentStep  = createStep(step);
-    if (!m_currentStep)
-    {
+    m_currentStep = createStep(step);
+    if (!m_currentStep) {
         return false;
     }
 

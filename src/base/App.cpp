@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2018 LG Electronics, Inc.
+// Copyright (c) 2013-2019 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -45,8 +45,7 @@ int App::run()
 
 void App::quit()
 {
-    if (m_mainLoop)
-    {
+    if (m_mainLoop) {
         g_main_loop_quit(m_mainLoop);
     }
 
@@ -57,8 +56,7 @@ void App::destroy()
 {
     onDestroy();
 
-    if (m_mainLoop)
-    {
+    if (m_mainLoop) {
         g_main_loop_unref(m_mainLoop);
         m_mainLoop = NULL;
     }
@@ -72,7 +70,7 @@ GMainLoop *App::mainLoop()
 bool App::attach(GSource *gsource)
 {
     if (gsource == NULL)
-         return false;
+        return false;
     g_source_attach(gsource, g_main_loop_get_context(mainLoop()));
     return true;
 }

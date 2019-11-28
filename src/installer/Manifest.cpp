@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2018 LG Electronics, Inc.
+// Copyright (c) 2017-2019 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,8 +14,8 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#include "Manifest.h"
 #include "base/JUtil.h"
+#include "Manifest.h"
 
 Manifest::Manifest(const std::string& path)
 {
@@ -33,20 +33,16 @@ bool Manifest::load(const std::string& path)
     if (m_info.isNull())
         return false;
 
-    const char *keys[] = {
-        "roleFiles",
-        "roleFilesPub",
-        "roleFilesPrv",
-        "serviceFiles",
-        "clientPermissionFiles",
-        "apiPermissionFiles"
-    };
+    const char *keys[] = {"roleFiles",
+                          "roleFilesPub",
+                          "roleFilesPrv",
+                          "serviceFiles",
+                          "clientPermissionFiles",
+                          "apiPermissionFiles"};
 
-    for(const char *key : keys)
-    {
-        if (m_info.hasKey(key))
-        {
-            for(const auto &v : m_info[key].items())
+    for (const char *key : keys) {
+        if (m_info.hasKey(key)) {
+            for (const auto &v : m_info[key].items())
                 m_paths.push_back(v.asString());
         }
     }

@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2018 LG Electronics, Inc.
+// Copyright (c) 2013-2019 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,10 +23,8 @@
 /*! AppInfo class is responsible for parsing appinfo.json
  * and contain parsed data
  */
-class AppInfo
-{
-    enum LOCALIZE
-    {
+class AppInfo {
+    enum LOCALIZE {
         LOCALIZE_SCRIPT = 0,
         LOCALIZE_REGION,
         LOCALIZE_LANGUAGE,

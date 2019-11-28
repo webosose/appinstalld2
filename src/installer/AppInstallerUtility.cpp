@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2018 LG Electronics, Inc.
+// Copyright (c) 2013-2019 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,32 +14,77 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#include "webospaths.h"
-#include "AppInstallerUtility.h"
-#include "base/Utils.h"
-#include "base/Logging.h"
-#include "base/System.h"
-#include "settings/Settings.h"
-#include "AppImpl.h"
-
 #include <string.h>
 #include <unistd.h>
+
+#include "AppImpl.h"
+#include "AppInstallerUtility.h"
+#include "base/Logging.h"
+#include "base/System.h"
+#include "base/Utils.h"
+#include "settings/Settings.h"
+#include "webospaths.h"
 
 bool AppInstallerUtility::m_locked = false;
 
 std::string getOpkgLockPath(std::string installBasePath)
 {
-    std::string opkgLockFilePath = installBasePath + Settings::instance().m_opkgLockFilePath;
+    std::string opkgLockFilePath = installBasePath + Settings::instance().getOpkgLockFilePath();
     std::size_t pos = opkgLockFilePath.rfind("opkg");
 
     return opkgLockFilePath.substr(0, pos);
 }
 
+gboolean AppInstallerUtility::cbChildProgress(GIOChannel *channel, GIOCondition condition, gpointer user_data)
+{
+    GString *str = g_string_new("");
+    GError *error = NULL;
+
+    GIOStatus status = g_io_channel_read_line_string(channel, str, NULL, &error);
+    if (status != G_IO_STATUS_NORMAL) {
+        if (error) {
+            LOG_WARNING(MSGID_INSTALL_IPK_IO_ERR, 1,
+                        PMLOGKS(LOGKEY_ERRTEXT,error->message),
+                        "Failed to read from child's stdout pipe");
+
+            g_error_free(error);
+        }
+
+        g_string_free(str, TRUE);
+        return true;
+    }
+
+    LOG_DEBUG("Got status message from child: %s\n", str->str);
+
+    if (!str->str || (strncmp(str->str, "status:", 7) && strncmp(str->str, " * ", 3))) {
+        g_string_free(str, TRUE);
+        return true;
+    }
+
+    AppInstallerUtility *installer = reinterpret_cast<AppInstallerUtility*>(user_data);
+    if (installer && installer->m_funcProgress)
+        installer->m_funcProgress(str->str);
+
+    g_string_free(str, TRUE);
+
+    return true;
+}
+
+void AppInstallerUtility::cbChildComplete(GPid pid, gint status, gpointer user_data) {
+    LOG_DEBUG("child pid %d done with status %d", pid, status);
+
+    AppInstallerUtility *installer = reinterpret_cast<AppInstallerUtility*>(user_data);
+    AppInstallerUtility::m_locked = false;
+
+    if (installer)
+        installer->m_funcComplete(status);
+}
+
 AppInstallerUtility::AppInstallerUtility()
-    : m_childStdOutChannel(NULL)
-    , m_childStdOutSource(NULL)
-    , m_sourceId(0)
-    , m_pid(-1)
+    : m_childStdOutChannel(NULL),
+      m_childStdOutSource(NULL),
+      m_sourceId(0),
+      m_pid(-1)
 {
 }
 
@@ -48,17 +93,21 @@ AppInstallerUtility::~AppInstallerUtility()
     clear();
 }
 
-AppInstallerUtility::Result AppInstallerUtility::install(std::string target, unsigned int uncompressedSizeInKB,
-    bool verify, bool allowDowngrade, bool allowReInstall, std::string installBasePath,
-    FuncProgress cbProgress, FuncComplete cbComplete)
+AppInstallerUtility::Result AppInstallerUtility::install(std::string target,
+                                                         unsigned int uncompressedSizeInKB,
+                                                         bool verify,
+                                                         bool allowDowngrade,
+                                                         bool allowReInstall,
+                                                         std::string installBasePath,
+                                                         FuncProgress cbProgress,
+                                                         FuncComplete cbComplete)
 {
     clear();
 
     std::string opkgBasePath = installBasePath;
-    if (installBasePath.empty())
-        opkgBasePath = (verify) ?
-            Settings::instance().m_userinstallPath :
-            Settings::instance().m_developerinstallPath;
+    if (installBasePath.empty()) {
+        opkgBasePath = Settings::instance().getInstallPath(verify);
+    }
 
     if (isLocked())
         return LOCKED;
@@ -81,19 +130,16 @@ AppInstallerUtility::Result AppInstallerUtility::install(std::string target, uns
     argv[index++] = (gchar *) "-p";
     argv[index++] = (gchar *) target.c_str();
     argv[index++] = (gchar *) "-f";
-    argv[index++] = (gchar *) Settings::instance().m_opkgConfPath.c_str();
+    argv[index++] = (gchar *) Settings::instance().getOpkgConfPath().c_str();
     argv[index++] = (gchar *) "-u";
     argv[index++] = (gchar *) "0";//Utils::toString(uncompressedSizeInKB).c_str();
 
     // When the app will be installed in the external storage,
     // Send the base path for installing apps in it.
-    if (!installBasePath.empty())
-    {
+    if (!installBasePath.empty()) {
         argv[index++] = (gchar *) "-l";
         argv[index++] = (gchar *) installBasePath.c_str();
-    }
-    else
-    {
+    } else {
         argv[index++] = (gchar*) "-t";
         if (verify)
             argv[index++] = (gchar*) "internal";
@@ -107,10 +153,11 @@ AppInstallerUtility::Result AppInstallerUtility::install(std::string target, uns
     argv[index] = NULL;
 
     std::string opkgLockPath = getOpkgLockPath(installBasePath);
-    if (!Utils::make_dir(opkgLockPath.c_str(), true))
-    {
-        LOG_ERROR(MSGID_APPINSTALL_FAIL, 2, PMLOGKS(REASON, "Failed to create opkg lock directory"),
-                                            PMLOGKS(PATH, opkgLockPath.c_str()), "");
+    if (!Utils::make_dir(opkgLockPath.c_str(), true)) {
+        LOG_ERROR(MSGID_APPINSTALL_FAIL, 2,
+                  PMLOGKS(REASON, "Failed to create opkg lock directory"),
+                  PMLOGKS(PATH, opkgLockPath.c_str()),
+                  "");
         return FAIL;
     }
 
@@ -126,8 +173,7 @@ AppInstallerUtility::Result AppInstallerUtility::install(std::string target, uns
                                       NULL,
                                       &gerr);
 
-    if (result)
-    {
+    if (result) {
         m_childStdOutChannel = g_io_channel_unix_new(childStdoutFd);
         m_childStdOutSource = g_io_create_watch(m_childStdOutChannel, G_IO_IN);
         g_source_set_callback(m_childStdOutSource, (GSourceFunc)cbChildProgress, this, NULL);
@@ -144,10 +190,11 @@ AppInstallerUtility::Result AppInstallerUtility::install(std::string target, uns
         return SUCCESS;
     }
 
-    if (gerr)
-    {
-        LOG_ERROR(MSGID_APPINSTALL_FAIL,2,PMLOGKS(REASON,"Failed to execute ApplicationInstallerUtility command"),
-                                                PMLOGKS(LOGKEY_ERRTEXT,gerr->message),"");
+    if (gerr) {
+        LOG_ERROR(MSGID_APPINSTALL_FAIL, 2,
+                  PMLOGKS(REASON,"Failed to execute ApplicationInstallerUtility command"),
+                  PMLOGKS(LOGKEY_ERRTEXT,gerr->message),
+                  "");
         g_error_free(gerr);
     }
 
@@ -160,9 +207,9 @@ AppInstallerUtility::Result AppInstallerUtility::remove(std::string appId, bool 
 
     if (isLocked())
         return LOCKED;
-    restore(Settings::instance().m_userinstallPath);
-    if (Settings::instance().m_isDevMode)
-        restore(Settings::instance().m_developerinstallPath);
+    restore(Settings::instance().getInstallPath(true));
+    if (Settings::instance().isDevMode())
+        restore(Settings::instance().getInstallPath(false));
     if (!installUSBPath.empty())
         restore(installUSBPath);
 
@@ -183,13 +230,12 @@ AppInstallerUtility::Result AppInstallerUtility::remove(std::string appId, bool 
     argv[index++] = (gchar *) "-p";
     argv[index++] = (gchar *) appId.c_str();
     argv[index++] = (gchar *) "-f";
-    argv[index++] = (gchar *) Settings::instance().m_opkgConfPath.c_str();
+    argv[index++] = (gchar *) Settings::instance().getOpkgConfPath().c_str();
     // Send USB path for find USB folders,
     // when the application is uninstalled.
     argv[index++] = (gchar *) "-l";
     argv[index++] = (gchar *) installUSBPath.c_str();
-    if (!verify)
-    {
+    if (!verify) {
         argv[index++] = (gchar*) "-t";
         argv[index++] = (gchar*) "developer";
     }
@@ -207,8 +253,7 @@ AppInstallerUtility::Result AppInstallerUtility::remove(std::string appId, bool 
                                       NULL,
                                       &gerr);
 
-    if (result)
-    {
+    if (result) {
         m_childStdOutChannel = g_io_channel_unix_new(childStdoutFd);
         m_childStdOutSource = g_io_create_watch(m_childStdOutChannel, G_IO_IN);
         g_source_set_callback(m_childStdOutSource, (GSourceFunc)cbChildProgress, this, NULL);
@@ -225,10 +270,11 @@ AppInstallerUtility::Result AppInstallerUtility::remove(std::string appId, bool 
         return SUCCESS;
     }
 
-    if (gerr)
-    {
-        LOG_ERROR(MSGID_APPREMOVE_FAIL,2,PMLOGKS(REASON,"Failed to execute ApplicationInstallerUtility command"),
-                                               PMLOGKS(LOGKEY_ERRTEXT,gerr->message),"");
+    if (gerr) {
+        LOG_ERROR(MSGID_APPREMOVE_FAIL, 2,
+                  PMLOGKS(REASON,"Failed to execute ApplicationInstallerUtility command"),
+                  PMLOGKS(LOGKEY_ERRTEXT,gerr->message),
+                  "");
 
         g_error_free(gerr);
     }
@@ -254,13 +300,11 @@ bool AppInstallerUtility::cancel()
 
 void AppInstallerUtility::clear()
 {
-    if (m_childStdOutChannel)
-    {
+    if (m_childStdOutChannel) {
         g_io_channel_unref(m_childStdOutChannel);
         m_childStdOutChannel = NULL;
     }
-    if (m_childStdOutSource)
-    {
+    if (m_childStdOutSource) {
         g_source_destroy(m_childStdOutSource);
         g_source_unref(m_childStdOutSource);
         m_childStdOutSource = NULL;
@@ -278,53 +322,5 @@ bool AppInstallerUtility::isLocked() const
 void AppInstallerUtility::restore(std::string installBasePath)
 {
     if (!installBasePath.empty())
-        Utils::remove_file(installBasePath + Settings::instance().m_opkgLockFilePath);
-}
-
-gboolean AppInstallerUtility::cbChildProgress(GIOChannel *channel, GIOCondition condition, gpointer user_data)
-{
-    GString *str = g_string_new("");
-    GError *error = NULL;
-
-    GIOStatus status = g_io_channel_read_line_string(channel, str, NULL, &error);
-    if (status != G_IO_STATUS_NORMAL)
-    {
-        if (error)
-        {
-            LOG_WARNING(MSGID_INSTALL_IPK_IO_ERR, 1,
-                        PMLOGKS(LOGKEY_ERRTEXT,error->message), "Failed to read from child's stdout pipe");
-
-            g_error_free(error);
-        }
-
-        g_string_free(str, TRUE);
-        return true;
-    }
-
-    LOG_DEBUG("Got status message from child: %s\n", str->str);
-
-    if (!str->str || (strncmp(str->str, "status:", 7) && strncmp(str->str, " * ", 3)))
-    {
-        g_string_free(str, TRUE);
-        return true;
-    }
-
-    AppInstallerUtility *installer = reinterpret_cast<AppInstallerUtility*>(user_data);
-    if (installer && installer->m_funcProgress)
-        installer->m_funcProgress(str->str);
-
-    g_string_free(str, TRUE);
-
-    return true;
-}
-
-void AppInstallerUtility::cbChildComplete(GPid pid, gint status, gpointer user_data)
-{
-    LOG_DEBUG("child pid %d done with status %d", pid, status);
-
-    AppInstallerUtility *installer = reinterpret_cast<AppInstallerUtility*>(user_data);
-    AppInstallerUtility::m_locked = false;
-
-    if (installer)
-        installer->m_funcComplete(status);
+        Utils::remove_file(installBasePath + Settings::instance().getOpkgLockFilePath());
 }

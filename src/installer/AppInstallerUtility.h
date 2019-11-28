@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2018 LG Electronics, Inc.
+// Copyright (c) 2013-2019 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,19 +17,17 @@
 #ifndef APPINSTALLERUTILITY_H
 #define APPINSTALLERUTILITY_H
 
+#include <functional>
 #include <glib.h>
 #include <string>
-#include <functional>
 
 //! This class for wrapping @WEBOS_INSTALL_BINDIR@/ApplicationInstallerUtility
-class AppInstallerUtility
-{
+class AppInstallerUtility {
     typedef std::function<void (const char*)> FuncProgress;
     typedef std::function<void (int)> FuncComplete;
 
 public:
-    typedef enum
-    {
+    typedef enum {
         SUCCESS = 0,
         FAIL,
         LOCKED
@@ -42,12 +40,21 @@ public:
     ~AppInstallerUtility();
 
     //! request install to @WEBOS_INSTALL_BINDIR@/ApplicationInstallerUtility
-    Result install(std::string target, unsigned int uncompressedSizeInKB,
-        bool verify, bool allowDowngrade, bool allowReInstall, std::string installBasePath,
-        FuncProgress cbProgress, FuncComplete cbComplete);
+    Result install(std::string target,
+                   unsigned int uncompressedSizeInKB,
+                   bool verify,
+                   bool allowDowngrade,
+                   bool allowReInstall,
+                   std::string installBasePath,
+                   FuncProgress cbProgress,
+                   FuncComplete cbComplete);
 
     //! request remove to @WEBOS_INSTALL_BINDIR@/ApplicationInstallerUtility
-    Result remove(std::string appId, bool verify, std::string installBasePath, FuncProgress cbProgress, FuncComplete cbComplete);
+    Result remove(std::string appId,
+                  bool verify,
+                  std::string installBasePath,
+                  FuncProgress cbProgress,
+                  FuncComplete cbComplete);
 
     //! cancel processing
     bool cancel();
@@ -56,6 +63,12 @@ public:
     void clear();
 
 protected:
+    //! watch function for child progress
+    static gboolean cbChildProgress(GIOChannel *channel, GIOCondition condition, gpointer user_data);
+
+    //! watch function for child complete
+    static void cbChildComplete(GPid pid, gint status, gpointer data);
+
     /*! checks it's locked or not
      * opkg can handle only one command at once
      */
@@ -67,13 +80,9 @@ protected:
      */
     void restore(std::string installBasePath);
 
-    //! watch function for child progress
-    static gboolean cbChildProgress(GIOChannel *channel, GIOCondition condition, gpointer user_data);
-
-    //! watch function for child complete
-    static void cbChildComplete(GPid pid, gint status, gpointer data);
-
 private:
+    static bool m_locked;
+
     GIOChannel* m_childStdOutChannel;
     GSource* m_childStdOutSource;
     guint m_sourceId;
@@ -81,8 +90,6 @@ private:
 
     FuncProgress m_funcProgress;
     FuncComplete m_funcComplete;
-
-    static bool m_locked;
 };
 
 #endif

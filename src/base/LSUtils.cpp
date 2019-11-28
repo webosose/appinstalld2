@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2018 LG Electronics, Inc.
+// Copyright (c) 2013-2019 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,11 +14,11 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#include "LSUtils.h"
-#include "Utils.h"
 #include "JUtil.h"
-#include "ServiceBase.h"
 #include "Logging.h"
+#include "LSUtils.h"
+#include "ServiceBase.h"
+#include "Utils.h"
 
 #include <pbnjson.hpp>
 
@@ -29,18 +29,20 @@ LSCaller::LSCaller(LSHandle *handle)
 {
 }
 
-bool LSCaller::Call(const char *uri, const char *payload,
-    LSFilterFunc callback, void *user_data, LSMessageToken *ret_token, std::string &errorText)
+bool LSCaller::Call(const char *uri,
+                    const char *payload,
+                    LSFilterFunc callback,
+                    void *user_data,
+                    LSMessageToken *ret_token,
+                    std::string &errorText)
 {
-    if (m_handle == NULL)
-    {
+    if (m_handle == NULL) {
         errorText = "LSHandle is NULL";
         return false;
     }
 
     LS::Error lserror;
-    if (!LSCall(m_handle, uri, payload, callback, user_data, ret_token, lserror))
-    {
+    if (!LSCall(m_handle, uri, payload, callback, user_data, ret_token, lserror)) {
         errorText = lserror.what();
         return false;
     }
@@ -48,25 +50,27 @@ bool LSCaller::Call(const char *uri, const char *payload,
     return true;
 }
 
-bool LSCaller::CallOneReply(const char *uri, const char *payload,
-    LSFilterFunc callback, void *user_data, LSMessageToken *ret_token, std::string &errorText, int timeout)
+bool LSCaller::CallOneReply(const char *uri,
+                            const char *payload,
+                            LSFilterFunc callback,
+                            void *user_data,
+                            LSMessageToken *ret_token,
+                            std::string &errorText,
+                            int timeout)
 {
-    if (m_handle == NULL)
-    {
+    if (m_handle == NULL) {
         errorText = "LSHandle is NULL";
         return false;
     }
 
     LS::Error lserror;
     LSMessageToken token = 0;
-    if (!LSCallOneReply(m_handle, uri, payload, callback, user_data, &token, lserror))
-    {
+    if (!LSCallOneReply(m_handle, uri, payload, callback, user_data, &token, lserror)) {
         errorText = lserror.what();
         return false;
     }
 
-    if (timeout != 0)
-    {
+    if (timeout != 0) {
         LSCallSetTimeout(m_handle, token, timeout, NULL);
     }
 
@@ -78,15 +82,13 @@ bool LSCaller::CallOneReply(const char *uri, const char *payload,
 
 bool LSCaller::CallCancel(LSMessageToken token, std::string &errorText)
 {
-    if (m_handle == NULL)
-    {
+    if (m_handle == NULL) {
         errorText = "LSHandle is NULL";
         return false;
     }
 
     LS::Error lserror;
-    if (!LSCallCancel(m_handle, token, lserror))
-    {
+    if (!LSCallCancel(m_handle, token, lserror)) {
         errorText = lserror.what();
         return false;
     }
@@ -100,8 +102,7 @@ bool LSCaller::replySubscription(const char *key, const char *payload)
         return false;
 
     LS::Error lserror;
-    if (!LSSubscriptionReply(m_handle, key, payload, lserror))
-    {
+    if (!LSSubscriptionReply(m_handle, key, payload, lserror)) {
         lserror.log(getPmLogContext(), MSGID_LSCALL_ERR);
         return false;
     }
@@ -125,11 +126,11 @@ std::string LSUtils::getCallerId(Message *LSRequest)
     std::vector<std::string> strs;
     std::istringstream iss(name);
     std::copy(std::istream_iterator<std::string>(iss),
-             std::istream_iterator<std::string>(),
-             std::back_inserter(strs));
+              std::istream_iterator<std::string>(),
+              std::back_inserter(strs));
 
     if (strs.empty())
-           return std::string("");
+        return std::string("");
 
     return strs[0];
 }
@@ -159,8 +160,7 @@ bool LSUtils::_registerService(ServiceBase *service)
 bool LSUtils::_unregisterService(ServiceBase *service)
 {
     std::map<std::string, ServiceBase*>::iterator it = m_mapService.find(service->get_service_name());
-    if (it != m_mapService.end())
-    {
+    if (it != m_mapService.end()) {
         m_mapService.erase(it);
         return true;
     }

@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2018 LG Electronics, Inc.
+// Copyright (c) 2013-2019 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,21 +18,19 @@
 #define APPPACKAGE_H
 
 #include <deque>
-#include <string>
 #include <functional>
 #include <glib.h>
+#include <string>
 
 //! AppPackage class helps extracting ipk file and parse items
-class AppPackage
-{
+class AppPackage {
 public:
     const static int CONTROL = 0x01;
     const static int DATA    = 0x02;
     const static int DEBIAN  = 0x04;
 
-    class Control
-    {
-        friend class AppPackage;
+    class Control {
+    friend class AppPackage;
 
     public:
         Control()
@@ -53,9 +51,9 @@ public:
 
     //! Extract targetFile(*.ipk) to targetPath
     bool extract(std::string targetFile,
-        int targetItem,
-        std::string targetPath,
-        std::function<void (bool)> onExtract);
+                 int targetItem,
+                 std::string targetPath,
+                 std::function<void (bool)> onExtract);
 
     //! Parse control file
     bool parseControl(std::string controlFilePath, AppPackage::Control &control);
@@ -70,11 +68,11 @@ public:
     bool isCanceled() const;
 
 protected:
-    //! Extract item file
-    bool extractOneItem();
-
     //! it's called when file extract complete
     static void cbExtractComplete(GPid pid, gint status, gpointer user_data);
+
+    //! Extract item file
+    bool extractOneItem();
 
 private:
     std::string m_targetFile;

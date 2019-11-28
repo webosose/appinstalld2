@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2018 LG Electronics, Inc.
+// Copyright (c) 2013-2019 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,6 +17,17 @@
 #include "ServiceInfo.h"
 #include "base/JUtil.h"
 
+ServiceInfo ServiceInfo::generate(std::string id, std::string type, std::string path, std::string exec)
+{
+    ServiceInfo info;
+    info.m_info = pbnjson::Object();
+    info.m_info.put("id", id);
+    info.m_info.put("engine", type);
+    info.m_info.put("executable", exec);
+    info.m_servicePath = path;
+    return info;
+}
+
 ServiceInfo::ServiceInfo(std::string servicePath)
     : m_servicePath(servicePath)
 {
@@ -29,10 +40,13 @@ ServiceInfo::ServiceInfo()
 
 void ServiceInfo::applyJailer(JailerType type)
 {
-    switch(type)
-    {
-    case JAILER_DEV: m_jailerType = "native_devmode"; break;
-    default: m_jailerType = "native"; break;
+    switch (type) {
+        case JAILER_DEV:
+            m_jailerType = "native_devmode";
+            break;
+        default:
+            m_jailerType = "native";
+            break;
     }
 }
 
@@ -54,47 +68,35 @@ std::string ServiceInfo::getType() const
 std::string ServiceInfo::getExec(bool fullPath) const
 {
     std::string exec = m_info["executable"].asString();
-    if(fullPath)
-    {
-        if(!m_rootPath.empty())
-        {
-            std::size_t pos = m_servicePath.find(m_rootPath);
-            if (pos == std::string::npos)
-            {
-                return m_servicePath + "/" + exec;
-            }
-
-            std::string relativePrefixPath = m_servicePath;
-            relativePrefixPath.erase(0, m_rootPath.length()+1);
-            return relativePrefixPath + "/" + exec;
-        }
-        else
-        {
-            return m_servicePath + "/" + exec;
-        }
+    if (!fullPath) {
+        return exec;
+    }
+    if (m_rootPath.empty()) {
+        return m_servicePath + "/" + exec;
     }
 
-    return exec;
+    std::size_t pos = m_servicePath.find(m_rootPath);
+    if (pos == std::string::npos) {
+        return m_servicePath + "/" + exec;
+    }
+
+    std::string relativePrefixPath = m_servicePath;
+    relativePrefixPath.erase(0, m_rootPath.length() + 1);
+    return relativePrefixPath + "/" + exec;
 }
 
 std::string ServiceInfo::getPath(bool absolute) const
 {
-    if(!absolute) //relatve
-    {
-        if(!m_rootPath.empty())
-        {
-            std::size_t pos = m_servicePath.find(m_rootPath);
-            if (pos == std::string::npos)
-            {
-                return m_servicePath;
-            }
-            std::string relativePath = m_servicePath;
-            relativePath.erase(0, m_rootPath.length()+1);
-            return relativePath;
-        }
+    if (absolute || m_rootPath.empty()) {
+        return m_servicePath;
     }
-
-    return m_servicePath;
+    std::size_t pos = m_servicePath.find(m_rootPath);
+    if (pos == std::string::npos) {
+        return m_servicePath;
+    }
+    std::string relativePath = m_servicePath;
+    relativePath.erase(0, m_rootPath.length() + 1);
+    return relativePath;
 }
 
 std::string ServiceInfo::getJailerType() const
@@ -115,15 +117,4 @@ bool ServiceInfo::load()
         applyJailer(JAILER_NATIVE);
 
     return true;
-}
-
-ServiceInfo ServiceInfo::generate(std::string id, std::string type, std::string path, std::string exec)
-{
-    ServiceInfo info;
-    info.m_info = pbnjson::Object();
-    info.m_info.put("id", id);
-    info.m_info.put("engine", type);
-    info.m_info.put("executable", exec);
-    info.m_servicePath = path;
-    return info;
 }

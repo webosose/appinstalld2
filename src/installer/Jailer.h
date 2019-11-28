@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2018 LG Electronics, Inc.
+// Copyright (c) 2016-2019 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,13 +17,12 @@
 #ifndef JAILER_H
 #define JAILER_H
 
-#include <string>
 #include <functional>
 #include <glib.h>
+#include <string>
 
 //! Jailer class helps remove jailer directories
-class Jailer
-{
+class Jailer {
 public:
     //! Remove jailer directoies with appId
     bool remove(std::string appId, std::function<void (bool)> onRemoved);

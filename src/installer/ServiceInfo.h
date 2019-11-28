@@ -17,20 +17,20 @@
 #ifndef SERVICEINFO_H
 #define SERVICEINFO_H
 
-#include <string>
 #include <pbnjson.hpp>
+#include <string>
 
 /*! ServiceInfo class is responsible for parsing services.json
  * and contain parsed data
  */
-class ServiceInfo
-{
+class ServiceInfo {
 public:
-    typedef enum
-    {
-        JAILER_NATIVE = 0,
-        JAILER_DEV
+    typedef enum {
+        JAILER_NATIVE = 0, JAILER_DEV
     } JailerType;
+
+    //! generate ServiceInfo object
+    static ServiceInfo generate(std::string id, std::string type, std::string path, std::string exec);
 
     /*! Constructor
      * Load serviceinfo from servicePath
@@ -55,9 +55,6 @@ public:
     std::string getPath(bool absolute = true) const;
     //! Get Jailer type for native service
     std::string getJailerType() const;
-
-    //! generate ServiceInfo object
-    static ServiceInfo generate(std::string id, std::string type, std::string path, std::string exec);
 
 private:
     //! Null Constructor

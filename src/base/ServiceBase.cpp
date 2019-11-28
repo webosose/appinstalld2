@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2018 LG Electronics, Inc.
+// Copyright (c) 2013-2019 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,12 +14,12 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#include "ServiceBase.h"
-#include "LSUtils.h"
 #include "Logging.h"
+#include "LSUtils.h"
+#include "ServiceBase.h"
 
-ServiceBase::ServiceBase(std::string serviceName):
-    LS::Handle(LS::registerService(serviceName.c_str()))
+ServiceBase::ServiceBase(std::string serviceName)
+    : LS::Handle(LS::registerService(serviceName.c_str()))
 {
 }
 
@@ -29,12 +29,9 @@ ServiceBase::~ServiceBase()
 
 bool ServiceBase::attach(GMainLoop * gml)
 {
-    try
-    {
+    try {
         attachToLoop(gml);
-    }
-    catch (const LS::Error &lserror)
-    {
+    } catch (const LS::Error &lserror) {
         LOG_ERROR(MSGID_LSCALL_ERR, 1, PMLOGKS("[serviceBase]-attach", lserror.what()), "");
         return false;
     }
@@ -49,12 +46,9 @@ bool ServiceBase::attach(GMainLoop * gml)
 
 void ServiceBase::detach()
 {
-    try
-    {
+    try {
         LS::Handle::detach();
-    }
-    catch (const LS::Error &lserror)
-    {
+    } catch (const LS::Error &lserror) {
         LOG_ERROR(MSGID_SRVC_DETACH_FAIL, 1, PMLOGKS("[serviceBase]-detach", lserror.what()), "");
         return;
     }

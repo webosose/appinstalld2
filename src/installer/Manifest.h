@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2018 LG Electronics, Inc.
+// Copyright (c) 2017-2019 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,14 +17,13 @@
 #ifndef MANIFEST_H
 #define MANIFEST_H
 
-#include <string>
 #include <pbnjson.hpp>
+#include <string>
 
 /*! Manifest class is responsible for parsing manifests.d.json
  * and contain parsed data
  */
-class Manifest
-{
+class Manifest {
 public:
     /*! Constructor
      * Load manifest from path

@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2018 LG Electronics, Inc.
+// Copyright (c) 2013-2019 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,8 +18,7 @@
 #define APPINSTALLERERRORS_H
 
 //! error value from AppInstaller
-enum
-{
+enum {
     APP_INSTALL_ERR_NONE            = 0,
     APP_INSTALL_ERR_GENERAL         = -1,
     APP_INSTALL_ERR_BADPARAM        = -2,

@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2018 LG Electronics, Inc.
+// Copyright (c) 2015-2019 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,8 +19,7 @@
 
 //! Creator template class using new operator
 template <typename T>
-class CreatorUsingNew
-{
+class CreatorUsingNew {
 public:
     T * operator()() const { return new T; }
 };

@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2018 LG Electronics, Inc.
+// Copyright (c) 2017-2019 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,8 +26,8 @@ StepSettings::~StepSettings()
 
 bool StepSettings::loadStepConfigure()
 {
-    std::string conf_path = Settings::instance().m_confPath;
-    bool isJailMode = Settings::instance().m_isJailMode;
+    std::string conf_path = Settings::instance().getConfPath();
+    bool isJailMode = Settings::instance().isJailMode();
 
     LOG_DEBUG("[StepSettings]::loadStepConfigure : %s", conf_path.c_str());
 
@@ -44,8 +44,7 @@ bool StepSettings::loadStepConfigure()
         pbnjson::JValue installSteps = root["installSteps"];
         int arraySize = installSteps.arraySize();
 
-        for (int i = 0; i < arraySize ; i++)
-        {
+        for (int i = 0; i < arraySize; i++) {
             std::string status, action;
             if (installSteps[i]["status"].asString(status) != CONV_OK)
                 continue;
@@ -54,8 +53,7 @@ bool StepSettings::loadStepConfigure()
 
             LOG_DEBUG("[StepStettings]::installSteps : status : %s, action : %s", status.c_str(), action.c_str());
 
-            m_mapInstallSteps.insert(std::pair<TaskStep, TaskStep>
-                                               (parser.stringToEnumStep(status),parser.stringToEnumStep(action)));
+            m_mapInstallSteps.insert(std::pair<TaskStep, TaskStep>(parser.stringToEnumStep(status), parser.stringToEnumStep(action)));
         }
     }
 
@@ -65,8 +63,7 @@ bool StepSettings::loadStepConfigure()
         pbnjson::JValue removeSteps = root["removeSteps"];
         int arraySize = removeSteps.arraySize();
 
-        for (int i = 0; i < arraySize ; i++)
-        {
+        for (int i = 0; i < arraySize; i++) {
             std::string status, action;
             if (removeSteps[i]["status"].asString(status) != CONV_OK)
                 continue;
@@ -74,23 +71,19 @@ bool StepSettings::loadStepConfigure()
                 continue;
 
             //Remove "RemoveJailer" Step when jailer is not supported
-            if(!isJailMode)
-            {
-                if(action == "RemoveJailNeeded")
-                {
+            if (!isJailMode) {
+                if (action == "RemoveJailNeeded") {
                     keepStatus = status; //keep "RemoveStarted" status
                     continue;
                 }
 
-                if(status == "RemoveJailComplete")
-                {
+                if (status == "RemoveJailComplete") {
                     status = keepStatus;
                 }
             }
 
-            LOG_DEBUG ("[StepStettings]::removeSteps : status : %s, action : %s", status.c_str(), action.c_str());
-            m_mapRemoveSteps.insert(std::pair<TaskStep, TaskStep>
-                                   (parser.stringToEnumStep(status),parser.stringToEnumStep(action) ));
+            LOG_DEBUG("[StepStettings]::removeSteps : status : %s, action : %s", status.c_str(), action.c_str());
+            m_mapRemoveSteps.insert(std::pair<TaskStep, TaskStep>(parser.stringToEnumStep(status), parser.stringToEnumStep(action)));
         }
     }
     return true;

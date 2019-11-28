@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2018 LG Electronics, Inc.
+// Copyright (c) 2013-2019 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,38 +23,38 @@
 #include "base/JUtil.h"
 
 Settings::Settings()
-    : m_installerDataPath(WEBOS_INSTALL_WEBOS_LOCALSTATEDIR "/data/com.webos.appInstallService" )
-    , m_userinstallPath( WEBOS_INSTALL_CRYPTOFSDIR )
-    , m_systeminstallPath( WEBOS_INSTALL_CRYPTOFSDIR )
-    , m_developerinstallPath( "/media/developer" )
-    , m_aliasinstallPath( "/media/alias" )
-    , m_aliasTempinstallPath( "/tmp/alias" )
-    , m_applicationPath( "/usr/palm/applications" )
-    , m_packagePath( "/usr/palm/packages" )
-    , m_servicePath( "/usr/palm/services" )
-    , m_applicationinstallPath( std::string("/apps") + m_applicationPath )
-    , m_packageinstallPath( std::string("/apps") + m_packagePath )
-    , m_serviceinstallPath( std::string("/apps") + m_servicePath )
-    , m_opkgConfPath ( WEBOS_INSTALL_WEBOS_SYSCONFDIR "/appinstalld/opkg.conf" )
-    , m_lunaFilesPath(WEBOS_INSTALL_WEBOS_LOCALSTATEDIR "/ls2" )
-    , m_developerlunaFilesPath(WEBOS_INSTALL_WEBOS_LOCALSTATEDIR "/ls2-dev" )
-    , m_jsservicePath( WEBOS_INSTALL_BINDIR "/run-js-service" )
-    , m_jailerPath( WEBOS_INSTALL_BINDIR "/jailer" )
-    , m_roleTemplatePathNDK(WEBOS_INSTALL_DATADIR "/rolegen/templates/NDK" )
-    , m_roleTemplatePathWebApp(WEBOS_INSTALL_DATADIR "/rolegen/templates/WebApp.json" )
-    , m_roleTemplatePathJSService(WEBOS_INSTALL_DATADIR "/rolegen/templates/JSService.json" )
-    , m_roleTemplatePathNativeService(WEBOS_INSTALL_DATADIR "/rolegen/templates/NativeService.json" )
-    , m_confPath(WEBOS_INSTALL_WEBOS_SYSCONFDIR "/appinstalld-conf.json")
-    , m_schemaPath(WEBOS_INSTALL_WEBOS_SYSCONFDIR "/schemas/appinstalld/")
-    , m_devModePath( "/var/luna/preferences/devmode_enabled" )
-    , m_isDevMode( false )
-    , m_isJailMode( false )
-    , m_localePath( "/var/luna/preferences/localeInfo" )
-    , m_signageContentsPath( "/mnt/lg/appstore/scap/contents/")
-    , m_supportUI( true )
-    , m_supportUpdateService( true )
-    , m_timeout ( 3 * 60 * 1000 )
-    , m_minimumAppSize ( 100 * 1024 )
+    : m_installerDataPath(WEBOS_INSTALL_WEBOS_LOCALSTATEDIR "/data/com.webos.appInstallService"),
+      m_userinstallPath( WEBOS_INSTALL_CRYPTOFSDIR),
+      m_systeminstallPath(WEBOS_INSTALL_CRYPTOFSDIR),
+      m_developerinstallPath("/media/developer"),
+      m_aliasinstallPath("/media/alias"),
+      m_aliasTempinstallPath("/tmp/alias"),
+      m_applicationPath("/usr/palm/applications"),
+      m_packagePath("/usr/palm/packages"),
+      m_servicePath("/usr/palm/services"),
+      m_applicationinstallPath(std::string("/apps") + m_applicationPath),
+      m_packageinstallPath(std::string("/apps") + m_packagePath),
+      m_serviceinstallPath(std::string("/apps") + m_servicePath),
+      m_opkgConfPath( WEBOS_INSTALL_WEBOS_SYSCONFDIR "/appinstalld/opkg.conf"),
+      m_lunaFilesPath(WEBOS_INSTALL_WEBOS_LOCALSTATEDIR "/ls2"),
+      m_developerlunaFilesPath(WEBOS_INSTALL_WEBOS_LOCALSTATEDIR "/ls2-dev"),
+      m_jsservicePath(WEBOS_INSTALL_BINDIR "/run-js-service"),
+      m_jailerPath( WEBOS_INSTALL_BINDIR "/jailer"),
+      m_roleTemplatePathNDK(WEBOS_INSTALL_DATADIR "/rolegen/templates/NDK"),
+      m_roleTemplatePathWebApp(WEBOS_INSTALL_DATADIR "/rolegen/templates/WebApp.json"),
+      m_roleTemplatePathJSService(WEBOS_INSTALL_DATADIR "/rolegen/templates/JSService.json"),
+      m_roleTemplatePathNativeService(WEBOS_INSTALL_DATADIR "/rolegen/templates/NativeService.json"),
+      m_confPath(WEBOS_INSTALL_WEBOS_SYSCONFDIR "/appinstalld-conf.json"),
+      m_schemaPath(WEBOS_INSTALL_WEBOS_SYSCONFDIR "/schemas/appinstalld/"),
+      m_devModePath("/var/luna/preferences/devmode_enabled"),
+      m_isDevMode(false),
+      m_isJailMode(false),
+      m_localePath("/var/luna/preferences/localeInfo"),
+      m_signageContentsPath("/mnt/lg/appstore/scap/contents/"),
+      m_supportUI(true),
+      m_supportUpdateService(true),
+      m_timeout(3 * 60 * 1000),
+      m_minimumAppSize(100 * 1024)
 {
     if (0 == access(m_devModePath.c_str(), F_OK))
         m_isDevMode = true;
@@ -76,29 +76,30 @@ bool Settings::parseOpkgConfigure()
     std::string line;
     std::string option, field, value;
 
-    if (file.good())
-    {
-        while(std::getline(file, line))
-        {
-            std::istringstream lineStream(line);
-
-            if (!std::getline(lineStream, option, ' '))
-                continue;
-            if (!std::getline(lineStream, field, ' '))
-                continue;
-            if (!std::getline(lineStream, value))
-                continue;
-
-            if (field == "info_dir") m_opkgInfoPath = std::string("/apps") + value;
-            else if (field == "status_file") m_opkgStatusFilePath = std::string("/apps") + value;
-            else if (field == "lock_file") m_opkgLockFilePath = std::string("/apps") + value;
-        }
-
-        file.close();
-        return true;
+    if (!file.good()) {
+        return false;
     }
 
-    return false;
+    while (std::getline(file, line)) {
+        std::istringstream lineStream(line);
+
+        if (!std::getline(lineStream, option, ' '))
+            continue;
+        if (!std::getline(lineStream, field, ' '))
+            continue;
+        if (!std::getline(lineStream, value))
+            continue;
+
+        if (field == "info_dir")
+            m_opkgInfoPath = std::string("/apps") + value;
+        else if (field == "status_file")
+            m_opkgStatusFilePath = std::string("/apps") + value;
+        else if (field == "lock_file")
+            m_opkgLockFilePath = std::string("/apps") + value;
+    }
+
+    file.close();
+    return true;
 }
 
 std::string Settings::getInstallPath(bool verified) const
@@ -133,12 +134,12 @@ std::string Settings::getLunaFilesPath(bool verified) const
 
 std::string Settings::getLunaRoleFilesPath(bool verified, bool pub) const
 {
-    return getLunaFilesPath(verified) + "/roles" + ( (pub) ? "/pub" : "/prv" );
+    return getLunaFilesPath(verified) + "/roles" + ((pub) ? "/pub" : "/prv");
 }
 
 std::string Settings::getLunaServiceFilesPath(bool verified, bool pub) const
 {
-    return getLunaFilesPath(verified) + "/services" + ( (pub) ? "/pub" : "/prv" );
+    return getLunaFilesPath(verified) + "/services" + ((pub) ? "/pub" : "/prv");
 }
 
 std::string Settings::getAppInstallBase() const
@@ -217,3 +218,99 @@ std::string Settings::getGroupNameForService(const std::string &serviceId)
 {
     return serviceId + ".group";
 }
+
+const std::string& Settings::getInstallerDataPath() const
+{
+    return m_installerDataPath;
+}
+
+const std::string& Settings::getApplicationPath() const
+{
+    return m_applicationPath;
+}
+
+const std::string& Settings::getPackagePath() const
+{
+    return m_packagePath;
+}
+
+const std::string& Settings::getPackageinstallPath() const
+{
+    return m_packageinstallPath;
+}
+
+const std::string& Settings::getServiceinstallPath() const
+{
+    return m_serviceinstallPath;
+}
+
+const std::string& Settings::getOpkgConfPath() const
+{
+    return m_opkgConfPath;
+}
+
+const std::string& Settings::getOpkgInfoPath() const
+{
+    return m_opkgInfoPath;
+}
+
+const std::string& Settings::getOpkgLockFilePath() const
+{
+    return m_opkgLockFilePath;
+}
+
+const std::string& Settings::getJsservicePath() const
+{
+    return m_jsservicePath;
+}
+
+const std::string& Settings::getJailerPath() const
+{
+    return m_jailerPath;
+}
+
+const std::string& Settings::getRoleTemplatePathNDK() const
+{
+    return m_roleTemplatePathNDK;
+}
+
+const std::string& Settings::getRoleTemplatePathWebApp() const
+{
+    return m_roleTemplatePathWebApp;
+}
+
+const std::string& Settings::getRoleTemplatePathJSService() const
+{
+    return m_roleTemplatePathJSService;
+}
+
+const std::string& Settings::getRoleTemplatePathNativeService() const
+{
+    return m_roleTemplatePathNativeService;
+}
+
+const std::string& Settings::getConfPath() const
+{
+    return m_confPath;
+}
+
+const std::string& Settings::getSchemaPath() const
+{
+    return m_schemaPath;
+}
+
+bool Settings::isDevMode()
+{
+    return m_isDevMode;
+}
+
+bool Settings::isJailMode()
+{
+    return m_isJailMode;
+}
+
+const std::string& Settings::getLocalePath() const
+{
+    return m_localePath;
+}
+
