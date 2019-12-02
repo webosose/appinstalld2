@@ -116,11 +116,9 @@ bool ServiceInstallerUtility::install(std::string appId,
 
     // native app has default role file
     if (appInfo.isNative()) {
-        ServiceInfo serviceInfo = ServiceInfo::generate(appId, "ndk", appInfo.getPath(), appInfo.getMain(false));
-        serviceInfo.applyRootPath(pathInfo.root);
-        if (!generateRoleFile(pathInfo.roles + "/prv", false, serviceInfo) ||
-            !generateRoleFile(pathInfo.roles + "/pub", true, serviceInfo)) {
-            Utils::async([=] {onComplete(false, "Failed to generate default role files");});
+        if (!generateRoleFileForNativeApp(pathInfo.roled, appInfo.getId(), appInfo.getMain(true)) ||
+            !generatePermissionFileForNativeApp(pathInfo.permissiond, pathInfo.verified, appInfo, serviceLists)) {
+            Utils::async([=] {onComplete(false, "Failed to generate role and permission file for Native application");});
             return false;
         }
     } else if (appInfo.isWeb() || appInfo.isQml()) {
@@ -317,6 +315,17 @@ bool ServiceInstallerUtility::generateRoleFileForWebApp(const std::string &path,
                                       "");
 }
 
+bool ServiceInstallerUtility::generateRoleFileForNativeApp(const std::string& path,
+                                                           const std::string& appId,
+                                                           const std::string& exec)
+{
+    return generateUnifiedAppRoleFile(path,
+                                      Settings::instance().getRoleTemplatePathNativeService(),
+                                      Settings::instance().getLunaUnifiedAppJsonFileName(appId),
+                                      appId,
+                                      exec);
+}
+
 bool ServiceInstallerUtility::generateRoleFileForService(const std::string &path,
                                                          const ServiceInfo &servicesInfo,
                                                          const AppInfo &appInfo)
@@ -392,6 +401,20 @@ bool ServiceInstallerUtility::generatePermissionFileForWebApp(const std::string 
                                              appInfo,
                                              appInfo.getId(),
                                              "-*",
+                                             requiredServices);
+}
+
+bool ServiceInstallerUtility::generatePermissionFileForNativeApp(const std::string &path,
+                                                                 bool verified,
+                                                                 const AppInfo &appInfo,
+                                                                 const std::vector<std::string> &requiredServices)
+{
+    return generateUnifiedAppPermissionsFile(path,
+                                             verified,
+                                             Settings::instance().getLunaUnifiedAppJsonFileName(appInfo.getId()),
+                                             appInfo,
+                                             appInfo.getId(),
+                                             "",
                                              requiredServices);
 }
 
@@ -520,23 +543,15 @@ bool ServiceInstallerUtility::generateManifestFile(const PathInfo &pathInfo,
         serviceFileArray.append(fileDir);
     }
 
-    // native app has default role file
-    if (appInfo.isNative()) {
-        //generateRoleFile
-        filePath = adjustLunaDirForManifest(pathInfo.root, pathInfo.roles);
-        rolePrvFileArray.append(filePath + "/prv" + "/" + appInfo.getId() + ".json");
-        rolePubFileArray.append(filePath + "/pub" + "/" + appInfo.getId() + ".json");
-    } else if (appInfo.isWeb() || appInfo.isQml()) {
-        //generateRoleFileForWeb/QmlApp
-        filePath = adjustLunaDirForManifest(pathInfo.root, pathInfo.roled);
-        fileDir = filePath + "/" + Settings::instance().getLunaUnifiedAppJsonFileName(appInfo.getId());
-        roledFileArray.append(fileDir);
+    //generateRoleFileForApp
+    filePath = adjustLunaDirForManifest(pathInfo.root, pathInfo.roled);
+    fileDir = filePath + "/" + Settings::instance().getLunaUnifiedAppJsonFileName(appInfo.getId());
+    roledFileArray.append(fileDir);
 
-        //generatePermissionFileForWeb/QmlApp
-        filePath = adjustLunaDirForManifest(pathInfo.root, pathInfo.permissiond);
-        fileDir = filePath + "/" + Settings::instance().getLunaUnifiedAppJsonFileName(appInfo.getId());
-        permissiondFileArray.append(fileDir);
-    }
+    //generatePermissionFileForApp
+    filePath = adjustLunaDirForManifest(pathInfo.root, pathInfo.permissiond);
+    fileDir = filePath + "/" + Settings::instance().getLunaUnifiedAppJsonFileName(appInfo.getId());
+    permissiondFileArray.append(fileDir);
 
     //TODO : There is no case only service in package.
     //set id & version from appinfo.json or packageinfo.json

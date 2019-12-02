@@ -80,6 +80,9 @@ protected:
     //! generate role file for web application in passed path
     bool generateRoleFileForWebApp(const std::string &path, const std::string &appId);
 
+    //! generate role file for native application in passed path
+    bool generateRoleFileForNativeApp(const std::string& path, const std::string& appId, const std::string& exec);
+
     //! generate role file for service in passed path
     bool generateRoleFileForService(const std::string &path, const ServiceInfo &servicesInfo, const AppInfo &appInfo);
 
@@ -89,6 +92,10 @@ protected:
 
     //! generate permission file for web application in passed path
     bool generatePermissionFileForWebApp(const std::string &path, bool verified, const AppInfo &appInfo, const std::vector<std::string> &requiredServices);
+
+    //! generate permission file for web application in passed path
+    bool generatePermissionFileForNativeApp(const std::string &path, bool verified,
+        const AppInfo &appInfo, const std::vector<std::string> &requiredServices);
 
     //! generate permission file for service in passed path
     bool generatePermissionFileForService(const std::string &path, bool verified, const ServiceInfo &servicesInfo, const AppInfo &appInfo);
