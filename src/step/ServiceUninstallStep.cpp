@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2018 LG Electronics, Inc.
+// Copyright (c) 2017-2020 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -74,8 +74,8 @@ bool ServiceUninstallStep::proceed(Task *task)
         LOG_DEBUG("[RemoveTask] install paths : pathInfo - root : %s, verified : %d, roles : %s, services : %s, roled : %s, serviced : %s, permissiond : %s, api_permissiond : %s, manifestsd : %s",
                   pathInfo.root.c_str(),
                   (int)pathInfo.verified,
-                  pathInfo.roles.c_str(),
-                  pathInfo.services.c_str(),
+                  pathInfo.legacyRoles.c_str(),
+                  pathInfo.legacyServices.c_str(),
                   pathInfo.roled.c_str(),
                   pathInfo.serviced.c_str(),
                   pathInfo.permissiond.c_str(),
