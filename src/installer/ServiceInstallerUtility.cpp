@@ -320,9 +320,9 @@ bool ServiceInstallerUtility::generateRoleFileForNativeApp(const std::string& pa
                                                            const std::string& exec)
 {
     return generateUnifiedAppRoleFile(path,
-                                      Settings::instance().getRoleTemplatePathNativeService(),
+                                      Settings::instance().getRoleTemplatePathNativeApp(),
                                       Settings::instance().getLunaUnifiedAppJsonFileName(appId),
-                                      appId,
+                                      appId+"*",
                                       exec);
 }
 
@@ -414,7 +414,7 @@ bool ServiceInstallerUtility::generatePermissionFileForNativeApp(const std::stri
                                              Settings::instance().getLunaUnifiedAppJsonFileName(appInfo.getId()),
                                              appInfo,
                                              appInfo.getId(),
-                                             "",
+                                             "*",
                                              requiredServices);
 }
 

@@ -43,6 +43,7 @@ Settings::Settings()
       m_roleTemplatePathNDK(WEBOS_INSTALL_DATADIR "/rolegen/templates/NDK"),
       m_roleTemplatePathWebApp(WEBOS_INSTALL_DATADIR "/rolegen/templates/WebApp.json"),
       m_roleTemplatePathJSService(WEBOS_INSTALL_DATADIR "/rolegen/templates/JSService.json"),
+      m_roleTemplatePathNativeApp(WEBOS_INSTALL_DATADIR "/rolegen/templates/NativeApp.json"),
       m_roleTemplatePathNativeService(WEBOS_INSTALL_DATADIR "/rolegen/templates/NativeService.json"),
       m_confPath(WEBOS_INSTALL_WEBOS_SYSCONFDIR "/appinstalld-conf.json"),
       m_schemaPath(WEBOS_INSTALL_WEBOS_SYSCONFDIR "/schemas/appinstalld/"),
@@ -282,6 +283,11 @@ const std::string& Settings::getRoleTemplatePathWebApp() const
 const std::string& Settings::getRoleTemplatePathJSService() const
 {
     return m_roleTemplatePathJSService;
+}
+
+const std::string& Settings::getRoleTemplatePathNativeApp() const
+{
+    return m_roleTemplatePathNativeApp;
 }
 
 const std::string& Settings::getRoleTemplatePathNativeService() const
