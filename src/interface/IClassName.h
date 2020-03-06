@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2020 LG Electronics, Inc.
+// Copyright (c) 2020 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,31 +14,31 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#ifndef MAINAPP_H
-#define MAINAPP_H
+#ifndef INTERFACE_ICLASSNAME_H_
+#define INTERFACE_ICLASSNAME_H_
 
-#include "base/App.h"
-#include "base/Singleton.hpp"
-#include "interface/IClassName.h"
+#include <iostream>
 
-class AppImpl : public App,
-                public IClassName {
+using namespace std;
+
+class IClassName {
 public:
-    //! Constructor
-    AppImpl();
+    IClassName() : m_name("Unknown") {};
+    virtual ~IClassName() {};
 
-protected:
-    //! This is called when process receive signal
-    static void term_handler(int signal);
+    string& getClassName()
+    {
+        return m_name;
+    }
 
-    //! This is called when App is created
-    virtual bool onCreate();
+    void setClassName(string name)
+    {
+        m_name = name;
+    }
 
-    //! This is called when App is destroyed
-    virtual bool onDestroy();
+private:
+    string m_name;
 
 };
 
-typedef Singleton<AppImpl> MainApp;
-
-#endif
+#endif /* INTERFACE_ICLASSNAME_H_ */

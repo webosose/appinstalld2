@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2019 LG Electronics, Inc.
+// Copyright (c) 2013-2020 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,27 +24,22 @@ void AppImpl::term_handler(int signal)
 }
 
 AppImpl::AppImpl()
-    : m_installService(NULL)
 {
+    setClassName("AppImpl");
 }
 
 bool AppImpl::onCreate()
 {
     signal(SIGTERM, AppImpl::term_handler);
 
-    m_installService = new AppInstallService;
-    m_installService->attach(mainLoop());
+    AppInstallService::getInstance().attach(mainLoop());
 
     return true;
 }
 
 bool AppImpl::onDestroy()
 {
-    if (m_installService) {
-        m_installService->detach();
-        delete m_installService;
-        m_installService = NULL;
-    }
+    AppInstallService::getInstance().detach();
 
     return true;
 }

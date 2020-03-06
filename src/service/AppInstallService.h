@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2019 LG Electronics, Inc.
+// Copyright (c) 2013-2020 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,23 +19,19 @@
 
 #include "base/ServiceBase.h"
 #include "installer/AppInstallerErrors.h"
+#include "interface/ISingleton.h"
 
 class AppInstaller;
 
 using namespace LS;
-namespace pbnjson
-{
-    class JValue;
-}
 
 //! Service class for com.webos.appInstallService
-class AppInstallService : public ServiceBase {
+class AppInstallService : public ServiceBase,
+                          public ISingleton<AppInstallService> {
+friend class ISingleton<AppInstallService>;
 public:
-    //! Constructor
-    AppInstallService();
-
     //! Destructor
-    ~AppInstallService();
+    virtual ~AppInstallService();
 
     //! luna-service attach
     bool attach(GMainLoop* gml);
@@ -65,6 +61,9 @@ protected:
     //! get service name
     virtual const char* get_service_name() const { return "com.webos.appInstallService"; }
 
+private:
+    //! Constructor
+    AppInstallService();
 };
 
 #endif
