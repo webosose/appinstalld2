@@ -235,18 +235,18 @@ void CallChain::onCallFinished(bool result, std::string errorText)
 
     bool processNext = result;
 
-    std::vector<CallConditionPtr>::iterator it =
-        std::find_if(m_conditions.begin(),
-                     m_conditions.end(),
+    std::vector<CallConditionPtr>::reverse_iterator it =
+        std::find_if(m_conditions.rbegin(),
+                     m_conditions.rend(),
                      [=] (const CallConditionPtr p) -> bool {return p->condition_call == call;});
 
-    if (it != m_conditions.end()) {
+    while (it != m_conditions.rend()) {
         if (result == (*it)->expected_result) {
             add((*it)->target_call, true);
             processNext = true;
         }
 
-        m_conditions.erase(it);
+        m_conditions.erase((++it).base());
     }
 
     if (!processNext &&
