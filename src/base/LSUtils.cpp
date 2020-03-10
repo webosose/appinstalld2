@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2019 LG Electronics, Inc.
+// Copyright (c) 2013-2020 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,13 +14,14 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#include "JUtil.h"
-#include "Logging.h"
 #include "LSUtils.h"
-#include "ServiceBase.h"
-#include "Utils.h"
 
 #include <pbnjson.hpp>
+
+#include "base/JUtil.h"
+#include "base/Logging.h"
+#include "base/ServiceBase.h"
+#include "base/Utils.h"
 
 using namespace std::placeholders;
 
@@ -52,6 +53,7 @@ bool LSCaller::Call(const char *uri,
 
 bool LSCaller::CallOneReply(const char *uri,
                             const char *payload,
+                            const char *sessionId,
                             LSFilterFunc callback,
                             void *user_data,
                             LSMessageToken *ret_token,
@@ -65,9 +67,16 @@ bool LSCaller::CallOneReply(const char *uri,
 
     LS::Error lserror;
     LSMessageToken token = 0;
-    if (!LSCallOneReply(m_handle, uri, payload, callback, user_data, &token, lserror)) {
-        errorText = lserror.what();
-        return false;
+    if (sessionId) {
+        if (!LSCallSession(m_handle, uri, payload, sessionId, callback, user_data, &token, lserror)) {
+            errorText = lserror.what();
+            return false;
+        }
+    } else {
+        if (!LSCallOneReply(m_handle, uri, payload, callback, user_data, &token, lserror)) {
+            errorText = lserror.what();
+            return false;
+        }
     }
 
     if (timeout != 0) {

@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2019 LG Electronics, Inc.
+// Copyright (c) 2013-2020 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -72,10 +72,11 @@ pbnjson::JValue CallItem::getChainData() const
     return m_chainData.duplicate();
 }
 
-LSCallItem::LSCallItem(const char *serviceName, const char *uri, const char *payload)
+LSCallItem::LSCallItem(const char *serviceName, const char *uri, const char *payload, const char *sessionId)
     : m_serviceName(serviceName),
       m_uri(uri),
-      m_payload(payload)
+      m_payload(payload),
+      m_sessionId(sessionId)
 {
 }
 
@@ -88,7 +89,7 @@ bool LSCallItem::Call()
 
     std::string errorText;
     LSCaller caller = LSUtils::acquireCaller(m_serviceName);
-    if (!caller.CallOneReply(m_uri.c_str(), m_payload.c_str(), LSCallItem::handler, this, NULL, errorText)) {
+    if (!caller.CallOneReply(m_uri.c_str(), m_payload.c_str(), m_sessionId, LSCallItem::handler, this, NULL, errorText)) {
         onError(errorText.c_str());
         return false;
     }

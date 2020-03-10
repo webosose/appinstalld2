@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2019 LG Electronics, Inc.
+// Copyright (c) 2013-2020 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ namespace CallChainEventHandler
 {
     class AppRunning : public LSCallItem {
     public:
-        AppRunning(const char *serviceName, std::string id);
+        AppRunning(const char *serviceName, const char *sessionId, std::string id);
 
     protected:
         virtual bool onReceiveCall(pbnjson::JValue message);
@@ -35,7 +35,7 @@ namespace CallChainEventHandler
 
     class AppClose : public LSCallItem {
     public:
-        AppClose(const char *serviceName, std::string id);
+        AppClose(const char *serviceName, const char *sessionId, std::string id);
 
     protected:
         virtual bool onReceiveCall(pbnjson::JValue message);
@@ -43,7 +43,7 @@ namespace CallChainEventHandler
 
     class AppInfo : public LSCallItem {
     public:
-        AppInfo(const char *serviceName, std::string id);
+        AppInfo(const char *serviceName, const char *sessionId, std::string id);
 
     protected:
         virtual bool onReceiveCall(pbnjson::JValue message);
@@ -57,7 +57,7 @@ namespace CallChainEventHandler
 
     class AppLock : public LSCallItem {
     public:
-        AppLock(const char *serviceName, std::string id);
+        AppLock(const char *serviceName, const char *sessionId, std::string id);
 
     protected:
         virtual bool onReceiveCall(pbnjson::JValue message);
@@ -65,7 +65,7 @@ namespace CallChainEventHandler
 
     class SvcClose : public CallItem {
     public:
-        SvcClose();
+        SvcClose(const char *sessionId);
 
         virtual bool Call();
 
@@ -75,6 +75,7 @@ namespace CallChainEventHandler
     private:
         int m_numResponse;
         int m_numServices;
+        const char *m_sessionId;
     };
 
     class RemoveDb : public LSCallItem {

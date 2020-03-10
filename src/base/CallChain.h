@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2019 LG Electronics, Inc.
+// Copyright (c) 2013-2020 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -132,7 +132,7 @@ private:
 class LSCallItem : public CallItem {
 public:
     //! Constructor
-    LSCallItem(const char *serviceName, const char *uri, const char *payload);
+    LSCallItem(const char *serviceName, const char *uri, const char *payload, const char *sessionId = nullptr);
 
     //! Execute this item
     virtual bool Call();
@@ -158,6 +158,7 @@ private:
     std::string m_serviceName;
     std::string m_uri;
     std::string m_payload;
+    const char *m_sessionId;
 };
 
 //! This class helps call the items in consecutive order

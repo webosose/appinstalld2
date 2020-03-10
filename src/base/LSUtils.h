@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2019 LG Electronics, Inc.
+// Copyright (c) 2013-2020 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -71,6 +71,7 @@ public:
     //! Call LSCallOneReply
     bool CallOneReply(const char *uri,
                       const char *payload,
+                      const char *sessionId,
                       LSFilterFunc callback,
                       void *user_data,
                       LSMessageToken *ret_token,
