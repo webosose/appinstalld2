@@ -15,6 +15,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "RemoveJailStep.h"
+#include "installer/Task.h"
 
 using namespace std::placeholders;
 

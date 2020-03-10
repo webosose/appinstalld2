@@ -16,6 +16,7 @@
 
 #include "AppCloseStep.h"
 #include <boost/algorithm/string/predicate.hpp>
+#include "installer/Task.h"
 
 using namespace std::placeholders;
 

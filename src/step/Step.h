@@ -17,8 +17,6 @@
 #ifndef STEP_H
 #define STEP_H
 
-#include "installer/Task.h"
-#include "installer/AppInstaller.h"
 #include "installer/InstallHistory.h"
 #include "base/Logging.h"
 #include "installer/AppInstallerErrors.h"

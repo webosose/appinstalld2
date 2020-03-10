@@ -16,6 +16,7 @@
 
 #include "IpkParseStep.h"
 #include <functional>
+#include "installer/Task.h"
 
 using namespace std::placeholders;
 

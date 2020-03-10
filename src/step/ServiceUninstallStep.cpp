@@ -15,6 +15,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "ServiceUninstallStep.h"
+#include "installer/Task.h"
 
 using namespace std::placeholders;
 

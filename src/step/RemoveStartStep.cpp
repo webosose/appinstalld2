@@ -15,6 +15,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "RemoveStartStep.h"
+#include "installer/Task.h"
 
 RemoveStartStep::RemoveStartStep()
 {

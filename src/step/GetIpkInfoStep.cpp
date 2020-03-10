@@ -16,6 +16,7 @@
 
 #include "GetIpkInfoStep.h"
 #include "base/JUtil.h"
+#include "installer/Task.h"
 
 using namespace std::placeholders;
 
