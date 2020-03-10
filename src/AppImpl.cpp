@@ -15,8 +15,14 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "AppImpl.h"
+
+#include "client/Configd.h"
+#include "client/SessionManager.h"
 #include "service/AppInstallService.h"
 #include "settings/Settings.h"
+#include "util/Logger.h"
+
+using namespace std::placeholders;
 
 void AppImpl::term_handler(int signal)
 {
@@ -33,13 +39,29 @@ bool AppImpl::onCreate()
     signal(SIGTERM, AppImpl::term_handler);
 
     AppInstallService::getInstance().attach(mainLoop());
+    Configd::getInstance().initialize();
+    SessionManager::getInstance().initialize();
+
+    Configd::getInstance().EventGetConfigs.connect(std::bind(&AppImpl::onGetConfigs, this, _1));
 
     return true;
 }
 
 bool AppImpl::onDestroy()
 {
+    SessionManager::getInstance().finalize();
+    Configd::getInstance().finalize();
     AppInstallService::getInstance().detach();
 
     return true;
+}
+
+void AppImpl::onGetConfigs(const JValue& responsePayload)
+{
+    JValue supportMultiProfile;
+
+    if (JValueUtil::getValue(responsePayload, "configs", "system.supportMultiProfile", supportMultiProfile) && supportMultiProfile.isBoolean())
+        Settings::instance().setIsSupportMultiProfile(supportMultiProfile.asBool());
+
+    Logger::info(getClassName(), __FUNCTION__, Logger::format("supportMultiProfile(%s)", Settings::instance().isSupportMultiProfile() ? "true": "false"));
 }

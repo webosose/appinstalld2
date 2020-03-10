@@ -17,9 +17,13 @@
 #ifndef MAINAPP_H
 #define MAINAPP_H
 
+#include <pbnjson.hpp>
+
 #include "base/App.h"
 #include "base/Singleton.hpp"
 #include "interface/IClassName.h"
+
+using namespace pbnjson;
 
 class AppImpl : public App,
                 public IClassName {
@@ -37,6 +41,8 @@ protected:
     //! This is called when App is destroyed
     virtual bool onDestroy();
 
+private:
+    void onGetConfigs(const JValue& responsePayload);
 };
 
 typedef Singleton<AppImpl> MainApp;

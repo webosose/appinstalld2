@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2019 LG Electronics, Inc.
+// Copyright (c) 2013-2020 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -151,6 +151,16 @@ public:
     bool isSmackMode();
     const std::string& getLocalePath() const;
 
+    void setIsSupportMultiProfile(bool support)
+    {
+        m_isSupportMultiProfile = support;
+    }
+
+    bool isSupportMultiProfile() const
+    {
+        return m_isSupportMultiProfile;
+    }
+
 protected:
 friend class Singleton<Settings> ;
     Settings();
@@ -200,6 +210,7 @@ private:
     std::string m_opkgStatusFilePath;       //default : /apps/var/lib/opkg/status
     std::string m_opkgLockFilePath;         //default : /apps/var/lock/opkg
 
+    bool m_isSupportMultiProfile;             // default : false
 };
 
 #endif // Settings
