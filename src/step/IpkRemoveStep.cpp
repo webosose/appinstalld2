@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2018 LG Electronics, Inc.
+// Copyright (c) 2017-2020 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "IpkRemoveStep.h"
+#include "installer/Task.h"
 
 using namespace std::placeholders;
 
