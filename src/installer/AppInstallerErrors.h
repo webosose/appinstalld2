@@ -39,6 +39,7 @@ enum {
     APP_INSTALL_ERR_DUPLICATED      = -17, // Install request is duplicated
     APP_INSTALL_ERR_TARGETISBUSY    = -18, // The USB is busy
     APP_REMOVE_ERR_PRIVILEGED       = -19,
+    APP_INSTALL_ERR_SMACK           = -20,
 };
 
 #endif

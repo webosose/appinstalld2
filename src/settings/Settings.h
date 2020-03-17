@@ -148,6 +148,7 @@ public:
     const std::string& getSchemaPath() const;
     bool isDevMode();
     bool isJailMode();
+    bool isSmackMode();
     const std::string& getLocalePath() const;
 
 protected:
@@ -184,6 +185,7 @@ private:
     std::string m_devModePath;              // default : /var/luna/preferences/devmode_enabled
     bool m_isDevMode;                       // default : false
     bool m_isJailMode;                      // default : false
+    bool m_isSmackMode;                     // default : false
     std::string m_localePath;               // default : /var/luna/preferences/localeInfo
 
     // Signage media file path which need to link app path

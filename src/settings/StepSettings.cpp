@@ -28,6 +28,7 @@ bool StepSettings::loadStepConfigure()
 {
     std::string conf_path = Settings::instance().getConfPath();
     bool isJailMode = Settings::instance().isJailMode();
+    bool isSmackMode = Settings::instance().isSmackMode();
 
     LOG_DEBUG("[StepSettings]::loadStepConfigure : %s", conf_path.c_str());
 
@@ -39,6 +40,7 @@ bool StepSettings::loadStepConfigure()
     }
 
     TaskStepParser parser;
+    std::string keepStatus;
 
     if (root["installSteps"].isArray()) {
         pbnjson::JValue installSteps = root["installSteps"];
@@ -51,13 +53,21 @@ bool StepSettings::loadStepConfigure()
             if (installSteps[i]["action"].asString(action) != CONV_OK)
                 continue;
 
-            LOG_DEBUG("[StepStettings]::installSteps : status : %s, action : %s", status.c_str(), action.c_str());
+            // TODO Remove "InstallSmack" Step when smack is not supported
+            if (!isSmackMode) {
+                if (action == "InstallSmackNeeded") {
+                    keepStatus = status;
+                    continue;
+                }
+                if (status == "InstallSmackComplete") {
+                    status = keepStatus;
+                }
+            }
 
+            LOG_DEBUG("[StepStettings]::installSteps : status : %s, action : %s", status.c_str(), action.c_str());
             m_mapInstallSteps.insert(std::pair<TaskStep, TaskStep>(parser.stringToEnumStep(status), parser.stringToEnumStep(action)));
         }
     }
-
-    std::string keepStatus;
 
     if (root["removeSteps"].isArray()) {
         pbnjson::JValue removeSteps = root["removeSteps"];
@@ -76,8 +86,17 @@ bool StepSettings::loadStepConfigure()
                     keepStatus = status; //keep "RemoveStarted" status
                     continue;
                 }
-
                 if (status == "RemoveJailComplete") {
+                    status = keepStatus;
+                }
+            }
+            // Remove "RemoveSmack" Step when smack is not supported
+            if (!isSmackMode) {
+                if (action == "RemoveSmackNeeded") {
+                    keepStatus = status;
+                    continue;
+                }
+                if (status == "RemoveSmackComplete") {
                     status = keepStatus;
                 }
             }

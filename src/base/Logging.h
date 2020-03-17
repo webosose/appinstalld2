@@ -105,11 +105,13 @@
 #define MSGID_INSTALL_RESTORED                  "INSTALL_RESTORED"          /* Install restored from db */
 #define MSGID_IPK_DOWNLD_RESUME                 "IPK_DOWNLD_RESUME"         /* Ipk file download resume */
 #define MSGID_SYMLINK_ERR                       "SYMLINK_ERR"               /* Make symbolic link error */
+#define MSGID_INSTALL_SMACK_FAIL                "INSTALL_SMACK_FAIL"
 
 /** RemoveTask.cpp */
 #define MSGID_REMOVE_IPK_IO_ERR         "IPK_RM_ERR"            /* IO channel read error during IPK uninstallation */
 #define MSGID_IPK_REMOVE_INFO           "IPK_RM_INFO"           /* Ipk remove status info on completion */
 #define MSGID_JAILER_REMOVE_FAIL        "JAILER_RM_ERR"         /* Removing jailer directory failed */
+#define MSGID_REMOVE_SMACK_FAIL         "REMOVE_SMACK_FAIL"
 
 /** Task.cpp */
 #define MSGID_TASK_ERROR                        "TASK_ERROR"            /* General error id from task */

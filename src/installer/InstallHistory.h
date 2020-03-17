@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2019 LG Electronics, Inc.
+// Copyright (c) 2013-2020 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -100,7 +100,15 @@ enum TaskStep {
     IpkVerifyNeeded, //268
     IpkVerifyRequested, //269
     IpkVerifyComplete, //270
-//Signing Related end
+    //Signing Related end
+    //SMACK Related start
+    InstallSmackNeeded, //271
+    InstallSmackRequested, //272
+    InstallSmackComplete, //273
+    RemoveSmackNeeded, //274
+    RemoveSmackRequested, //275
+    RemoveSmackComplete, //276
+    //SMACK Related end
 };
 
 class TaskStepParser {
@@ -191,6 +199,14 @@ public:
         enumMap["IpkVerifyNeeded"] = IpkVerifyNeeded;
         enumMap["IpkVerifyRequested"] = IpkVerifyRequested;
         enumMap["IpkVerifyComplete"] = IpkVerifyComplete;
+
+        enumMap["InstallSmackNeeded"] = InstallSmackNeeded;
+        enumMap["InstallSmackRequested"] = InstallSmackRequested;
+        enumMap["InstallSmackComplete"] = InstallSmackComplete;
+
+        enumMap["RemoveSmackNeeded"] = RemoveSmackNeeded;
+        enumMap["RemoveSmackRequested"] = RemoveSmackRequested;
+        enumMap["RemoveSmackComplete"] = RemoveSmackComplete;
     }
 
     TaskStep stringToEnumStep(const std::string &strStep)

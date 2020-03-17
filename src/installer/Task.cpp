@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2018 LG Electronics, Inc.
+// Copyright (c) 2013-2020 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
+#include "Task.h"
+
 #include <cinttypes>
 
 #include "base/Creator.h"
@@ -26,11 +28,12 @@
 #include "step/IpkInstallStep.h"
 #include "step/IpkParseStep.h"
 #include "step/IpkRemoveStep.h"
+#include "step/InstallSmackStep.h"
 #include "step/RemoveJailStep.h"
+#include "step/RemoveSmackStep.h"
 #include "step/RemoveStartStep.h"
 #include "step/ServiceInstallStep.h"
 #include "step/ServiceUninstallStep.h"
-#include "Task.h"
 
 typedef Factory<Step> StepFactory;
 
@@ -67,12 +70,14 @@ bool Task::initialize(pbnjson::JValue param)
     StepFactory::instance().registerObject("GetIpkInfoNeeded", CreatorUsingNew<GetIpkInfoStep>());
     StepFactory::instance().registerObject("AppCloseNeeded", CreatorUsingNew<AppCloseStep>());
     StepFactory::instance().registerObject("IpkInstallNeeded", CreatorUsingNew<IpkInstallStep>());
+    StepFactory::instance().registerObject("InstallSmackNeeded", CreatorUsingNew<InstallSmackStep>());
     StepFactory::instance().registerObject("ServiceInstallNeeded", CreatorUsingNew<ServiceInstallStep>());
     StepFactory::instance().registerObject("RemoveNeeded", CreatorUsingNew<RemoveStartStep>());
     StepFactory::instance().registerObject("RemoveJailNeeded", CreatorUsingNew<RemoveJailStep>());
     StepFactory::instance().registerObject("ServiceUninstallNeeded", CreatorUsingNew<ServiceUninstallStep>());
     StepFactory::instance().registerObject("IpkRemoveNeeded", CreatorUsingNew<IpkRemoveStep>());
     StepFactory::instance().registerObject("DataRemoveNeeded", CreatorUsingNew<DataRemoveStep>());
+    StepFactory::instance().registerObject("RemoveSmackNeeded", CreatorUsingNew<RemoveSmackStep>());
 
     return true;
 }
@@ -317,6 +322,14 @@ pbnjson::JValue Task::toJValue() const
             details.put("state", "app closing");
             break;
 
+        case InstallSmackNeeded:
+        case InstallSmackRequested:
+            details.put("state", "installing SMACK rule");
+            break;
+        case InstallSmackComplete:
+            details.put("state", "installing SMACK rule done");
+            break;
+
         case InstallComplete:
             details.put("state", "installed");
             details.put("progress", 100);
@@ -346,6 +359,14 @@ pbnjson::JValue Task::toJValue() const
         case RemoveComplete:
             details.put("state", "removed");
             details.put("progress", 100);
+            break;
+
+        case RemoveSmackNeeded:
+        case RemoveSmackRequested:
+            details.put("state", "removing SMACK rules");
+            break;
+        case RemoveSmackComplete:
+            details.put("state", "removing SMACK rules done");
             break;
 
         case ErrorRemove:
