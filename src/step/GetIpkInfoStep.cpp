@@ -41,16 +41,17 @@ bool GetIpkInfoStep::proceed(Task *task)
         this, _1, _2));
 
     const char *sessionId = nullptr;
-    if (Settings::instance().isSupportMultiProfile()) {
-        if (SessionList::getInstance().empty()) {
-            // TODO Cannot query getAppInfo
-            task->setError(ErrorInstall, APP_INSTALL_ERR_GENERAL, "empty session list, cannot query getAppInfo");
-            task->proceed();
-            return false;
-        } else {
-            sessionId = SessionList::getInstance().at(0).c_str();
-        }
+
+#if defined(WEBOS_TARGET_DISTRO_WEBOS_AUTO)
+    if (SessionList::getInstance().empty()) {
+        // TODO Cannot query getAppInfo
+        task->setError(ErrorInstall, APP_INSTALL_ERR_GENERAL, "empty session list, cannot query getAppInfo");
+        task->proceed();
+        return false;
+    } else {
+        sessionId = SessionList::getInstance().at(0).c_str();
     }
+#endif
 
     auto itemAppInfo = std::make_shared<CallChainEventHandler::AppInfo>(
         "com.webos.appInstallService",

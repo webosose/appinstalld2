@@ -80,7 +80,7 @@ namespace CallChainEventHandler
 
     class RemoveDb : public LSCallItem {
     public:
-        RemoveDb(const char* serviceName, pbnjson::JValue owners);
+        RemoveDb(const char* serviceName, const char* sessionId, pbnjson::JValue owners);
 
     protected:
         virtual bool onReceiveCall(pbnjson::JValue message);

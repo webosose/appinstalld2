@@ -151,16 +151,6 @@ public:
     bool isSmackMode();
     const std::string& getLocalePath() const;
 
-    void setIsSupportMultiProfile(bool support)
-    {
-        m_isSupportMultiProfile = support;
-    }
-
-    bool isSupportMultiProfile() const
-    {
-        return m_isSupportMultiProfile;
-    }
-
 protected:
 friend class Singleton<Settings> ;
     Settings();
@@ -209,8 +199,6 @@ private:
     std::string m_opkgInfoPath;             //default : /apps/var/lib/opkg/info
     std::string m_opkgStatusFilePath;       //default : /apps/var/lib/opkg/status
     std::string m_opkgLockFilePath;         //default : /apps/var/lock/opkg
-
-    bool m_isSupportMultiProfile;             // default : false
 };
 
 #endif // Settings

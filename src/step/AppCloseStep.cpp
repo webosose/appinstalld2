@@ -53,15 +53,15 @@ bool AppCloseStep::proceed(Task *task)
     CallChain& callchain = CallChain::acquire(std::bind(&AppCloseStep::onAppClosed,
         this, _1, _2));
 
-    if (Settings::instance().isSupportMultiProfile()) {
-        size_t size = SessionList::getInstance().size();
-        for (size_t i = 0; i < size; ++i) {
-            const std::string& sessionId = SessionList::getInstance().at(i);
-            addCallItems(sessionId.c_str(), packageId, callchain);
-        }
-    } else {
-        addCallItems(nullptr, packageId, callchain);
+#if defined(WEBOS_TARGET_DISTRO_WEBOS_AUTO)
+    size_t size = SessionList::getInstance().size();
+    for (size_t i = 0; i < size; ++i) {
+        const std::string& sessionId = SessionList::getInstance().at(i);
+        addCallItems(sessionId.c_str(), packageId, callchain);
     }
+#else
+    addCallItems(nullptr, packageId, callchain);
+#endif
 
     m_parentTask->setStep(AppCloseRequested);
 

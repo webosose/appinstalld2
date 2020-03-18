@@ -426,15 +426,15 @@ void Task::finish()
         return;
 
     // TODO unlock app
-    if (Settings::instance().isSupportMultiProfile()) {
-        size_t size = SessionList::getInstance().size();
-        for (size_t i = 0; i < size; ++i) {
-            const std::string& sessionId = SessionList::getInstance().at(i);
-            ApplicationManager::getInstance().lockApp(sessionId.c_str(), getPackageId(), false);
-        }
-    } else {
-        ApplicationManager::getInstance().lockApp(nullptr, getPackageId(), false);
+#if defined(WEBOS_TARGET_DISTRO_WEBOS_AUTO)
+    size_t size = SessionList::getInstance().size();
+    for (size_t i = 0; i < size; ++i) {
+        const std::string& sessionId = SessionList::getInstance().at(i);
+        ApplicationManager::getInstance().lockApp(sessionId.c_str(), getPackageId(), false);
     }
+#else
+    ApplicationManager::getInstance().lockApp(nullptr, getPackageId(), false);
+#endif
 
     signalFinished(*this);
     m_currentStep = nullptr;

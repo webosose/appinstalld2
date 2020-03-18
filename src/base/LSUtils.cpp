@@ -68,11 +68,15 @@ bool LSCaller::CallOneReply(const char *uri,
     LS::Error lserror;
     LSMessageToken token = 0;
     if (sessionId) {
+        LOG_DEBUG("%s '%s' -c %s", uri, payload, sessionId);
+#if defined(WEBOS_TARGET_DISTRO_WEBOS_AUTO)
         if (!LSCallSession(m_handle, uri, payload, sessionId, callback, user_data, &token, lserror)) {
             errorText = lserror.what();
             return false;
         }
+#endif
     } else {
+        LOG_DEBUG("%s '%s'", uri, payload);
         if (!LSCallOneReply(m_handle, uri, payload, callback, user_data, &token, lserror)) {
             errorText = lserror.what();
             return false;

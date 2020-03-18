@@ -15,6 +15,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "DataRemoveStep.h"
+#include "base/SessionList.h"
 #include "installer/Task.h"
 
 using namespace std::placeholders;
@@ -47,10 +48,23 @@ bool DataRemoveStep::proceed(Task *task)
         dbOwners.append(*it);
     }
 
+#if defined(WEBOS_TARGET_DISTRO_WEBOS_AUTO)
+    size_t size = SessionList::getInstance().size();
+    for (size_t i = 0; i < size; ++i) {
+        const std::string& sessionId = SessionList::getInstance().at(i);
+        auto itemRemoveDb = std::make_shared<CallChainEventHandler::RemoveDb>(
+            "com.webos.appInstallService",
+            sessionId.c_str(),
+            dbOwners);
+        callchain.add(itemRemoveDb);
+    }
+#else
     auto itemRemoveDb = std::make_shared<CallChainEventHandler::RemoveDb>(
         "com.webos.appInstallService",
+        nullptr,
         dbOwners);
     callchain.add(itemRemoveDb);
+#endif
 
     m_parentTask->setStep(DataRemoveRequested);
     return callchain.run();

@@ -57,8 +57,7 @@ Settings::Settings()
       m_supportUI(true),
       m_supportUpdateService(true),
       m_timeout(3 * 60 * 1000),
-      m_minimumAppSize(100 * 1024),
-      m_isSupportMultiProfile(false)
+      m_minimumAppSize(100 * 1024)
 {
     if (0 == access(m_devModePath.c_str(), F_OK))
         m_isDevMode = true;

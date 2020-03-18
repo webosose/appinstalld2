@@ -42,7 +42,7 @@ protected:
     virtual bool onDestroy();
 
 private:
-    void onGetConfigs(const JValue& responsePayload);
+
 };
 
 typedef Singleton<AppImpl> MainApp;

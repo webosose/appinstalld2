@@ -238,8 +238,8 @@ namespace CallChainEventHandler
         return true;
     }
 
-    RemoveDb::RemoveDb(const char* serviceName, pbnjson::JValue owners)
-        : LSCallItem(serviceName, "luna://com.webos.service.db/removeAppData", "")
+    RemoveDb::RemoveDb(const char* serviceName, const char* sessionId, pbnjson::JValue owners)
+        : LSCallItem(serviceName, "luna://com.webos.service.db/removeAppData", "", sessionId)
     {
         pbnjson::JValue json = pbnjson::Object();
         json.put("owners", owners);
