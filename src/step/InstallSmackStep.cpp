@@ -36,8 +36,8 @@ bool InstallSmackStep::proceed(Task *task) {
     LOG_DEBUG("InstallSmackStep::~proceed() called\n");
 
     m_parentTask = task;
-    std::string appId = m_parentTask->getAppId();
-    std::string applicationPath = m_parentTask->getInstallBasePath() + Settings::instance().getApplicationInstallPath() + "/" + appId;
+    std::string packageId = m_parentTask->getPackageId();
+    std::string applicationPath = m_parentTask->getInstallBasePath() + Settings::instance().getApplicationInstallPath() + "/" + packageId;
     std::string label;
     AppInfo appInfo(applicationPath);
 
@@ -58,7 +58,7 @@ bool InstallSmackStep::proceed(Task *task) {
     if (appInfo.isWeb())
         label = SMACK_EXEC_WEB;
     else
-        label = SMACK_EXEC_PREFFIX + appId;
+        label = SMACK_EXEC_PREFFIX + packageId;
 
     argv[index++] = (gchar *)CHSMACK_EXEC;
     argv[index++] = (gchar *)"-r";
@@ -100,13 +100,13 @@ bool InstallSmackStep::proceed(Task *task) {
         return false;
     }
 
-    std::string rulesFilePath = SMACK_RULES_DIR + appId;
+    std::string rulesFilePath = SMACK_RULES_DIR + packageId;
     if (!appInfo.isWeb() && !g_file_test(rulesFilePath.c_str(), G_FILE_TEST_IS_REGULAR)) {
         g_mkdir_with_parents(SMACK_RULES_DIR, 0755);
         index = 0;
         argv[index++] = (gchar *)SMACK_RULES_GEN_EXEC;
         argv[index++] = (gchar *)"-b";
-        argv[index++] = (gchar *)appId.c_str();
+        argv[index++] = (gchar *)packageId.c_str();
         argv[index++] = (gchar *)"-o";
         argv[index++] = (gchar *)rulesFilePath.c_str();
         argv[index++] = NULL;
