@@ -142,7 +142,7 @@ void AppCloseStep::addCallItems(const char *sessionId, const string& packageId, 
     );
 
     auto itemSvcClose = std::make_shared<CallChainEventHandler::SvcClose>(
-        nullptr // TODO Not sure whether service is running in session or host
+        sessionId
     );
 
     callchain

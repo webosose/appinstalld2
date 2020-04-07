@@ -194,7 +194,7 @@ namespace CallChainEventHandler
                 }
             } else {
                 std::string serviceExec = serviceInfo.getExec(true);
-                std::string closeCmd = std::string("killall ") + serviceExec;
+                std::string closeCmd = "pkill -f " + serviceExec;
                 LOG_DEBUG("[NATIVE_SVC_CLOSE] closeCmd : %s", closeCmd.c_str());
                 ::system(closeCmd.c_str());
 
