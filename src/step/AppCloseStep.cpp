@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2018 LG Electronics, Inc.
+// Copyright (c) 2017-2020 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,8 +15,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "AppCloseStep.h"
+
 #include <boost/algorithm/string/predicate.hpp>
 #include "installer/Task.h"
+
+#include "base/SessionList.h"
+#include "settings/Settings.h"
 
 using namespace std::placeholders;
 
@@ -49,42 +53,17 @@ bool AppCloseStep::proceed(Task *task)
     CallChain& callchain = CallChain::acquire(std::bind(&AppCloseStep::onAppClosed,
         this, _1, _2));
 
-    auto itemAppInfo = std::make_shared<CallChainEventHandler::AppInfo>(
-        "com.webos.appInstallService",
-        packageId
-    );
-    itemAppInfo->setOption(CallItem::OPTION_NONSTOP);
-
-    auto itemAppRemovable = std::make_shared<CallChainEventHandler::AppRemovable>(
-    );
-
-    auto itemAppLock = std::make_shared<CallChainEventHandler::AppLock>(
-        "com.webos.appInstallService",
-        packageId
-    );
-
-    auto itemRunning = std::make_shared<CallChainEventHandler::AppRunning>(
-        "com.webos.appInstallService",
-        packageId
-    );
-    itemRunning->setOption(CallItem::OPTION_NONSTOP);
-
-    auto itemClose = std::make_shared<CallChainEventHandler::AppClose>(
-        "com.webos.appInstallService",
-        packageId
-    );
-
-    auto itemSvcClose = std::make_shared<CallChainEventHandler::SvcClose>(
-    );
+#if defined(WEBOS_TARGET_DISTRO_WEBOS_AUTO)
+    size_t size = SessionList::getInstance().size();
+    for (size_t i = 0; i < size; ++i) {
+        const std::string& sessionId = SessionList::getInstance().at(i);
+        addCallItems(sessionId.c_str(), packageId, callchain);
+    }
+#else
+    addCallItems(nullptr, packageId, callchain);
+#endif
 
     m_parentTask->setStep(AppCloseRequested);
-    callchain
-        .add(itemAppInfo)
-        .add_if(itemAppInfo, true, itemAppRemovable)
-        .add_if(itemAppInfo, true, itemAppLock)
-        .add(itemRunning)
-        .add_if(itemRunning, true, itemClose)
-        .add(itemSvcClose);
 
     return callchain.run();
 }
@@ -129,4 +108,48 @@ bool AppCloseStep::checkPriviligedApp()
     }
 
     return true;
+}
+
+void AppCloseStep::addCallItems(const char *sessionId, const string& packageId, CallChain& callchain)
+{
+    auto itemAppInfo = std::make_shared<CallChainEventHandler::AppInfo>(
+        "com.webos.appInstallService",
+        sessionId,
+        packageId
+    );
+    itemAppInfo->setOption(CallItem::OPTION_NONSTOP);
+
+    auto itemAppRemovable = std::make_shared<CallChainEventHandler::AppRemovable>(
+    );
+
+    auto itemAppLock = std::make_shared<CallChainEventHandler::AppLock>(
+        "com.webos.appInstallService",
+        sessionId,
+        packageId
+    );
+
+    auto itemRunning = std::make_shared<CallChainEventHandler::AppRunning>(
+        "com.webos.appInstallService",
+        sessionId,
+        packageId
+    );
+    itemRunning->setOption(CallItem::OPTION_NONSTOP);
+
+    auto itemClose = std::make_shared<CallChainEventHandler::AppClose>(
+        "com.webos.appInstallService",
+        sessionId,
+        packageId
+    );
+
+    auto itemSvcClose = std::make_shared<CallChainEventHandler::SvcClose>(
+        sessionId
+    );
+
+    callchain
+        .add(itemAppInfo)
+        .add_if(itemAppInfo, true, itemAppRemovable)
+        .add_if(itemAppInfo, true, itemAppLock)
+        .add(itemRunning)
+        .add_if(itemRunning, true, itemClose)
+        .add(itemSvcClose);
 }

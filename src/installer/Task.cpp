@@ -21,7 +21,10 @@
 #include "base/Creator.h"
 #include "base/Factory.h"
 #include "base/Logging.h"
+#include "base/SessionList.h"
 #include "base/Utils.h"
+#include "client/ApplicationManager.h"
+#include "settings/Settings.h"
 #include "step/AppCloseStep.h"
 #include "step/DataRemoveStep.h"
 #include "step/GetIpkInfoStep.h"
@@ -421,6 +424,17 @@ void Task::finish()
 {
     if (m_finished)
         return;
+
+    // TODO unlock app
+#if defined(WEBOS_TARGET_DISTRO_WEBOS_AUTO)
+    size_t size = SessionList::getInstance().size();
+    for (size_t i = 0; i < size; ++i) {
+        const std::string& sessionId = SessionList::getInstance().at(i);
+        ApplicationManager::getInstance().lockApp(sessionId.c_str(), getPackageId(), false);
+    }
+#else
+    ApplicationManager::getInstance().lockApp(nullptr, getPackageId(), false);
+#endif
 
     signalFinished(*this);
     m_currentStep = nullptr;

@@ -14,14 +14,31 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#ifndef SETTINGS_SMACK_H
-#define SETTINGS_SMACK_H
+#ifndef INTERFACE_ICLASSNAME_H_
+#define INTERFACE_ICLASSNAME_H_
 
-#define CHSMACK_EXEC            "chsmack"
-#define SMACKCTL_EXEC           "smackctl"
-#define SMACK_RULES_GEN_EXEC    "/usr/share/smack/smack_rules_gen"
-#define SMACK_RULES_DIR         "/etc/smack/accesses.d/"
-#define SMACK_EXEC_PREFFIX      "webOS::App::"
-#define SMACK_EXEC_WEB          "webOS::WAM"
+#include <iostream>
 
-#endif
+using namespace std;
+
+class IClassName {
+public:
+    IClassName() : m_name("Unknown") {};
+    virtual ~IClassName() {};
+
+    string& getClassName()
+    {
+        return m_name;
+    }
+
+    void setClassName(string name)
+    {
+        m_name = name;
+    }
+
+private:
+    string m_name;
+
+};
+
+#endif /* INTERFACE_ICLASSNAME_H_ */

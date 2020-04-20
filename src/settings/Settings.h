@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2019 LG Electronics, Inc.
+// Copyright (c) 2013-2020 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -199,7 +199,6 @@ private:
     std::string m_opkgInfoPath;             //default : /apps/var/lib/opkg/info
     std::string m_opkgStatusFilePath;       //default : /apps/var/lib/opkg/status
     std::string m_opkgLockFilePath;         //default : /apps/var/lock/opkg
-
 };
 
 #endif // Settings

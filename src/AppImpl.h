@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2019 LG Electronics, Inc.
+// Copyright (c) 2013-2020 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,12 +17,16 @@
 #ifndef MAINAPP_H
 #define MAINAPP_H
 
+#include <pbnjson.hpp>
+
 #include "base/App.h"
 #include "base/Singleton.hpp"
+#include "interface/IClassName.h"
 
-class AppInstallService;
+using namespace pbnjson;
 
-class AppImpl : public App {
+class AppImpl : public App,
+                public IClassName {
 public:
     //! Constructor
     AppImpl();
@@ -38,7 +42,7 @@ protected:
     virtual bool onDestroy();
 
 private:
-    AppInstallService *m_installService;
+
 };
 
 typedef Singleton<AppImpl> MainApp;

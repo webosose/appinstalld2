@@ -8,7 +8,6 @@
         "notifications",
         "security",
         "settings",
-        "system.debug",
-        "tv.management"
+        "system.debug"
     ]
 }

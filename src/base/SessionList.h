@@ -14,14 +14,23 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#ifndef SETTINGS_SMACK_H
-#define SETTINGS_SMACK_H
+#ifndef BASE_SESSIONLIST_H_
+#define BASE_SESSIONLIST_H_
 
-#define CHSMACK_EXEC            "chsmack"
-#define SMACKCTL_EXEC           "smackctl"
-#define SMACK_RULES_GEN_EXEC    "/usr/share/smack/smack_rules_gen"
-#define SMACK_RULES_DIR         "/etc/smack/accesses.d/"
-#define SMACK_EXEC_PREFFIX      "webOS::App::"
-#define SMACK_EXEC_WEB          "webOS::WAM"
+#include <vector>
 
-#endif
+#include "interface/ISingleton.h"
+
+using namespace std;
+
+class SessionList : public ISingleton<SessionList>,
+                    public vector<string> {
+friend class ISingleton<SessionList>;
+public:
+    virtual ~SessionList() {}
+
+private:
+    SessionList() {}
+};
+
+#endif /* BASE_SESSIONLIST_H_ */

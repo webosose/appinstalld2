@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2018 LG Electronics, Inc.
+// Copyright (c) 2017-2020 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,8 +15,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "GetIpkInfoStep.h"
+
 #include "base/JUtil.h"
+#include "base/SessionList.h"
 #include "installer/Task.h"
+#include "settings/Settings.h"
 
 using namespace std::placeholders;
 
@@ -37,8 +40,22 @@ bool GetIpkInfoStep::proceed(Task *task)
     CallChain& callchain = CallChain::acquire(std::bind(&GetIpkInfoStep::onAppInfo,
         this, _1, _2));
 
+    const char *sessionId = nullptr;
+
+#if defined(WEBOS_TARGET_DISTRO_WEBOS_AUTO)
+    if (SessionList::getInstance().empty()) {
+        // TODO Cannot query getAppInfo
+        task->setError(ErrorInstall, APP_INSTALL_ERR_GENERAL, "empty session list, cannot query getAppInfo");
+        task->proceed();
+        return false;
+    } else {
+        sessionId = SessionList::getInstance().at(0).c_str();
+    }
+#endif
+
     auto itemAppInfo = std::make_shared<CallChainEventHandler::AppInfo>(
         "com.webos.appInstallService",
+        sessionId,
         task->getPackageId()
     );
 

@@ -14,14 +14,27 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#ifndef SETTINGS_SMACK_H
-#define SETTINGS_SMACK_H
+#ifndef INTERFACE_ISINGLETON_H_
+#define INTERFACE_ISINGLETON_H_
 
-#define CHSMACK_EXEC            "chsmack"
-#define SMACKCTL_EXEC           "smackctl"
-#define SMACK_RULES_GEN_EXEC    "/usr/share/smack/smack_rules_gen"
-#define SMACK_RULES_DIR         "/etc/smack/accesses.d/"
-#define SMACK_EXEC_PREFFIX      "webOS::App::"
-#define SMACK_EXEC_WEB          "webOS::WAM"
+#include <iostream>
 
-#endif
+using namespace std;
+
+template <class T>
+class ISingleton {
+public:
+    virtual ~ISingleton() {};
+
+    static T& getInstance()
+    {
+        static T _instance;
+        return _instance;
+    }
+
+protected:
+    ISingleton() {};
+
+};
+
+#endif /* INTERFACE_ISINGLETON_H_ */
