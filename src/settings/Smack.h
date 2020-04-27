@@ -22,6 +22,6 @@
 #define SMACK_RULES_GEN_EXEC    "/usr/share/smack/smack_rules_gen"
 #define SMACK_RULES_DIR         "/etc/smack/accesses.d/"
 #define SMACK_EXEC_PREFFIX      "webOS::App::"
-#define SMACK_EXEC_WEB          "webOS::WAM"
+#define SMACK_SERVICE_PREFFIX   "webOS::Service::"
 
 #endif

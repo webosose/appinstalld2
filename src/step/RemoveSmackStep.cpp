@@ -15,7 +15,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "RemoveSmackStep.h"
+#include "installer/ServiceInfo.h"
+#include "installer/PackageInfo.h"
+#include "installer/AppInfo.h"
 #include "base/Logging.h"
+#include "settings/Settings.h"
 #include "installer/InstallHistory.h"
 #include "installer/Task.h"
 #include "settings/Smack.h"
@@ -33,16 +37,92 @@ bool RemoveSmackStep::proceed(Task *task)
 {
     LOG_DEBUG("RemoveSmackStep::proceed() called\n");
 
-    m_parentTask = task;
-    std::string rules_file_path = SMACK_RULES_DIR + m_parentTask->getAppId();
+    std::vector<std::string> rulePaths;
+    GSpawnFlags flags = (GSpawnFlags)(G_SPAWN_SEARCH_PATH);
+    gchar * argv[9] = {0};
+    GError * gerr = NULL;
+    gint exit_status = 0;
+    gboolean resultStatus;
+    int index = 0;
 
-    if (g_file_test(rules_file_path.c_str(), G_FILE_TEST_EXISTS)) {
-        if (remove(rules_file_path.c_str())) {
-            LOG_WARNING(MSGID_REMOVE_SMACK_FAIL, 3,
-                PMLOGKS(APP_ID, m_parentTask->getAppId().c_str()),
-                PMLOGKS(PATH, rules_file_path.c_str()),
-                PMLOGKS(LOGKEY_ERRTEXT, "Cannot remove SMACK rules"), "");
+    m_parentTask = task;
+    rulePaths.push_back(SMACK_RULES_DIR + m_parentTask->getAppId());
+
+    pbnjson::JValue param = task->getParam();
+    bool verify = param["verify"].asBool();
+    std::vector<std::string> serviceLists;
+    std::string packagePath = Settings::instance().getInstallPath(verify) +
+            Settings::instance().getPackageinstallPath() +
+            std::string("/") + m_parentTask->getAppId();
+
+    PackageInfo packageInfo(packagePath);
+    if (packageInfo.isLoaded())
+        packageInfo.getServices(serviceLists);
+
+    for (auto iter = serviceLists.begin(); iter != serviceLists.end(); ++iter) {
+        std::string servicePath = Settings::instance().getInstallServicePath(verify) + "/" + (*iter);
+        ServiceInfo serviceInfo(servicePath);
+        rulePaths.push_back(SMACK_RULES_DIR + serviceInfo.getId());
+    }
+
+    // check dev services
+    if (verify && serviceLists.empty()) {
+        std::string packagePathDev = Settings::instance().getInstallPath(false) +
+            Settings::instance().getPackageinstallPath() +
+            std::string("/") + m_parentTask->getAppId();
+
+        PackageInfo packageInfoDev(packagePathDev);
+        if (packageInfoDev.isLoaded())
+            packageInfoDev.getServices(serviceLists);
+
+        for (auto iter = serviceLists.begin(); iter != serviceLists.end(); ++iter) {
+            std::string servicePath = Settings::instance().getInstallServicePath(false) + "/" + (*iter);
+            ServiceInfo serviceInfo(servicePath);
+            rulePaths.push_back(SMACK_RULES_DIR + serviceInfo.getId());
         }
+    }
+
+    for (auto iter = rulePaths.begin(); iter != rulePaths.end(); ++iter) {
+        std::string& rulePath = (*iter);
+        if (g_file_test(rulePath.c_str(), G_FILE_TEST_EXISTS)) {
+            if (remove(rulePath.c_str())) {
+                LOG_WARNING(MSGID_REMOVE_SMACK_FAIL, 3,
+                    PMLOGKS(APP_ID, m_parentTask->getAppId().c_str()),
+                    PMLOGKS(PATH, rulePath.c_str()),
+                    PMLOGKS(LOGKEY_ERRTEXT, "Cannot remove SMACK rules"), "");
+            }
+        }
+    }
+
+    argv[index++] = (gchar *)SMACKCTL_EXEC;
+    argv[index++] = (gchar *)"apply";
+    argv[index++] = NULL;
+    LOG_DEBUG("Executing %s %s", argv[0], argv[1]);
+    resultStatus = g_spawn_sync(NULL,
+                                argv,
+                                NULL,
+                                flags,
+                                NULL,
+                                NULL,
+                                NULL,
+                                NULL,
+                                &exit_status,
+                                &gerr);
+    LOG_DEBUG("smackctl result status is %d, exit status is %d", (int)resultStatus, (int)WEXITSTATUS(exit_status));
+
+    if (gerr) {
+        LOG_ERROR(MSGID_INSTALL_SMACK_FAIL, 2,
+            PMLOGKS(REASON, "Failed to execute smackctl"),
+            PMLOGKS(LOGKEY_ERRTEXT,gerr->message),
+            "");
+        g_error_free(gerr);
+    }
+
+    if (!resultStatus || exit_status) {
+        LOG_DEBUG("Non-zero exit code from smackctl.");
+        m_parentTask->setError(ErrorInstall, APP_INSTALL_ERR_SMACK, "unable to execute smackctl command");
+        m_parentTask->proceed();
+        return false;
     }
 
     m_parentTask->setStep(RemoveSmackComplete);
