@@ -37,6 +37,8 @@ bool RemoveSmackStep::proceed(Task *task)
 {
     LOG_DEBUG("RemoveSmackStep::proceed() called\n");
 
+    std::string prefix;
+    std::string mountExec = "mount";
     std::vector<std::string> rulePaths;
     GSpawnFlags flags = (GSpawnFlags)(G_SPAWN_SEARCH_PATH);
     gchar * argv[9] = {0};
@@ -46,7 +48,14 @@ bool RemoveSmackStep::proceed(Task *task)
     int index = 0;
 
     m_parentTask = task;
-    rulePaths.push_back(SMACK_RULES_DIR + m_parentTask->getAppId());
+
+    if (g_file_test((SMACK_RULES_OVERLAY + m_parentTask->getAppId()).c_str(), G_FILE_TEST_EXISTS)) {
+        prefix = SMACK_RULES_OVERLAY;
+    } else {
+        prefix = SMACK_RULES_DIR;
+    }
+
+    rulePaths.push_back(prefix + m_parentTask->getAppId());
 
     pbnjson::JValue param = task->getParam();
     bool verify = param["verify"].asBool();
@@ -62,7 +71,7 @@ bool RemoveSmackStep::proceed(Task *task)
     for (auto iter = serviceLists.begin(); iter != serviceLists.end(); ++iter) {
         std::string servicePath = Settings::instance().getInstallServicePath(verify) + "/" + (*iter);
         ServiceInfo serviceInfo(servicePath);
-        rulePaths.push_back(SMACK_RULES_DIR + serviceInfo.getId());
+        rulePaths.push_back(prefix + serviceInfo.getId());
     }
 
     // check dev services
@@ -78,7 +87,7 @@ bool RemoveSmackStep::proceed(Task *task)
         for (auto iter = serviceLists.begin(); iter != serviceLists.end(); ++iter) {
             std::string servicePath = Settings::instance().getInstallServicePath(false) + "/" + (*iter);
             ServiceInfo serviceInfo(servicePath);
-            rulePaths.push_back(SMACK_RULES_DIR + serviceInfo.getId());
+            rulePaths.push_back(prefix + serviceInfo.getId());
         }
     }
 
@@ -93,7 +102,43 @@ bool RemoveSmackStep::proceed(Task *task)
             }
         }
     }
+    if (prefix == SMACK_RULES_OVERLAY) {
+        index = 0;
+        argv[index++] = (gchar *)mountExec.c_str();
+        argv[index++] = (gchar *)"-o";
+        argv[index++] = (gchar *)"remount";
+        argv[index++] = (gchar *)SMACK_RULES_DIR;
+        argv[index++] = NULL;
+        LOG_DEBUG("Executing %s %s %s %s", argv[0], argv[1], argv[2], argv[3]);
+        resultStatus = g_spawn_sync(NULL,
+                                    argv,
+                                    NULL,
+                                    flags,
+                                    NULL,
+                                    NULL,
+                                    NULL,
+                                    NULL,
+                                    &exit_status,
+                                    &gerr);
+        LOG_DEBUG("%s result status is %d, exit status is %d", mountExec.c_str(), (int)resultStatus, (int)WEXITSTATUS(exit_status));
 
+        if (gerr) {
+            LOG_ERROR(MSGID_INSTALL_SMACK_FAIL, 2,
+                PMLOGKS(REASON, "Failed to execute mount"),
+                PMLOGKS(LOGKEY_ERRTEXT,gerr->message),
+                "");
+            g_error_free(gerr);
+        }
+
+        if (!resultStatus || exit_status) {
+            LOG_DEBUG("Non-zero exit code from mount.");
+            m_parentTask->setError(ErrorInstall, APP_INSTALL_ERR_SMACK, "unable to execute mount command");
+            m_parentTask->proceed();
+            return false;
+        }
+    }
+
+    index = 0;
     argv[index++] = (gchar *)SMACKCTL_EXEC;
     argv[index++] = (gchar *)"apply";
     argv[index++] = NULL;
