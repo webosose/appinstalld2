@@ -23,5 +23,6 @@
 #define SMACK_RULES_DIR         "/etc/smack/accesses.d/"
 #define SMACK_EXEC_PREFFIX      "webOS::App::"
 #define SMACK_SERVICE_PREFFIX   "webOS::Service::"
+#define SMACK_RULES_OVERLAY     "/var/smack/accesses.d/"
 
 #endif
