@@ -42,10 +42,6 @@
         },
         {
            "status": "RemoveJailComplete",
-           "action": "RemoveSmackNeeded"
-        },
-        {
-           "status": "RemoveSmackComplete",
            "action": "ServiceUninstallNeeded"
         },
         {
@@ -58,6 +54,10 @@
         },
         {
            "status": "DataRemoveComplete",
+           "action": "RemoveSmackNeeded"
+        },
+        {
+           "status": "RemoveSmackComplete",
            "action": "RemoveComplete"
         }
     ]
