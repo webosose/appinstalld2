@@ -145,9 +145,12 @@ void AppCloseStep::addCallItems(const char *sessionId, const string& packageId, 
         sessionId
     );
 
+    callchain.add(itemAppInfo);
+
+    if (m_parentTask->getName() == "RemoveTask")
+        callchain.add_if(itemAppInfo, true, itemAppRemovable);
+
     callchain
-        .add(itemAppInfo)
-        .add_if(itemAppInfo, true, itemAppRemovable)
         .add_if(itemAppInfo, true, itemAppLock)
         .add(itemRunning)
         .add_if(itemRunning, true, itemClose)
