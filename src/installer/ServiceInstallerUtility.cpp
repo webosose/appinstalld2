@@ -478,11 +478,8 @@ bool ServiceInstallerUtility::generateServiceFile(std::string path,
     std::string exec;
     if (servicesInfo.getType() == "native") {
         if (Settings::instance().isJailMode()) {
-            exec = Settings::instance().getJailerPath();
-            exec += " -t " + servicesInfo.getJailerType();
-            exec += " -i " + appInfo.getId();
-            exec += " -p " + servicesInfo.getPath(false); //relative path
-            exec += " " + servicesInfo.getExec(true); //full path by adding relative path
+            // TODO As we support linux user, We need to discuss whether to continue using jailer.
+            exec = servicesInfo.getExec(true);
         } else {
             exec = servicesInfo.getExec(true);
         }
