@@ -37,9 +37,6 @@ bool GetIpkInfoStep::proceed(Task *task)
     LOG_DEBUG("GetIpkInfoStep::proceed() called\n");
     m_parentTask = task;
 
-    CallChain& callchain = CallChain::acquire(std::bind(&GetIpkInfoStep::onAppInfo,
-        this, _1, _2));
-
     const char *sessionId = nullptr;
 
 #if defined(WEBOS_TARGET_DISTRO_WEBOS_AUTO)
@@ -60,6 +57,9 @@ bool GetIpkInfoStep::proceed(Task *task)
     );
 
     task->setStep(GetIpkInfoRequested);
+
+    CallChain& callchain = CallChain::acquire(std::bind(&GetIpkInfoStep::onAppInfo,
+    this, _1, _2));
 
     return callchain
         .add(itemAppInfo)
