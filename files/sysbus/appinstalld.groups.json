@@ -1,6 +1,5 @@
 {
-    "appinstalld.internal": {
-        "description": "internal methods for app install",
-        "public": false
-    }
+    "allowedNames" : ["com.webos.appInstallService"],
+    "applicationinstall.management": ["oem"],
+    "applicationinstall.devmode": ["dev"]
 }

@@ -1,6 +1,7 @@
 {
     "exeName":"@WEBOS_INSTALL_SBINDIR@/appinstalld",
     "type": "regular",
+    "trustLevel": "oem",
     "allowedNames": ["com.webos.appInstallService"],
     "permissions": [
         {
