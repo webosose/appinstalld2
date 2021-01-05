@@ -5,7 +5,8 @@
         "database.internal",
         "devices",
         "networking.internal",
-        "notifications",
+        "notification.operation",
+	"notification.management",
         "security",
         "settings",
         "system.debug"
