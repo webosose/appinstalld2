@@ -1,6 +1,5 @@
 {
     "com.webos.appInstallService": [
-        "applications.internal",
         "applicationinstall.management",
         "application.launcher",
         "application.devmode",
