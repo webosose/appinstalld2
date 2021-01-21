@@ -453,7 +453,7 @@ bool ServiceInstallerUtility::generateAPIPermissionsFileForService(const std::st
     // Dump the API permissions object into the file
     JValue perms = Object() << JValue::KeyValue(Settings::instance().getGroupNameForService(servicesInfo.getId()), methods);
     if (!verified)
-        perms = perms << JValue::KeyValue("ares.webos.cli", methods);
+        perms = perms << JValue::KeyValue("arescli.interface", methods);
     ofs << JUtil::toSimpleString(perms) << std::endl;
     ofs.close();
 
