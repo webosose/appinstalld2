@@ -1,6 +1,6 @@
 {
     "com.webos.appInstallService": [
-        "all",
+        "applicationinstall.interface",
         "application.launcher",
         "session.management",
         "application.operation",
