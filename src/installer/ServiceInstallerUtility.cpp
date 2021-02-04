@@ -436,6 +436,7 @@ bool ServiceInstallerUtility::generateAPIPermissionsFileForService(const std::st
                                                                    const ServiceInfo &servicesInfo,
                                                                    const AppInfo &appInfo)
 {
+
     if (!Utils::make_dir(path))
         return false;
 
@@ -448,16 +449,29 @@ bool ServiceInstallerUtility::generateAPIPermissionsFileForService(const std::st
 
     // Array of provided methods masks - include all methods for target service
     JValue methods = Array();
-    methods << (servicesInfo.getId() + "/*");
+    methods << (servicesInfo.getId() + "/*"); // Dump the API permissions object into the file
+    JValue perms = Object() << JValue::KeyValue(Settings::instance().getGroupNameForService(servicesInfo.getId()), methods);
+
+   //Create info and quit API's for all the node js services under the group applicationinstall.interface
+   //These API's are addded by default by nodejs-module-webos-service
+   //"applicationinstall.interface" group will be added in appinstalld's perm file
+
+    JValue callback_methods = Array();
+    callback_methods << (servicesInfo.getId() + "/info");
+    callback_methods << (servicesInfo.getId() + "/quit");
 
     // Dump the API permissions object into the file
-    JValue perms = Object() << JValue::KeyValue(Settings::instance().getGroupNameForService(servicesInfo.getId()), methods);
+    perms.put("applicationinstall.interface", callback_methods);
+
     if (!verified)
-        perms = perms << JValue::KeyValue("arescli.interface", methods);
+        perms.put("arescli.interface", methods);
+
     ofs << JUtil::toSimpleString(perms) << std::endl;
+
     ofs.close();
 
     return true;
+
 }
 
 bool ServiceInstallerUtility::generateServiceFile(std::string path,
