@@ -39,8 +39,10 @@ static void roleGenerate(std::string templatePath,
 {
     std::string line;
     size_t n;
+    std::string trustLevel="oem";
     static const std::string ID_TAG = "XXXIDXXX";
     static const std::string PATH_TAG = "XXXEXEPATHXXX";
+    static const std::string trustLevel_TAG = "XXXPERMLEVELXXX";
 
     std::ifstream myfile(templatePath.c_str());
     std::ofstream newfile(destinationPath.c_str());
@@ -55,6 +57,8 @@ static void roleGenerate(std::string templatePath,
             line.replace(n, ID_TAG.length(), id);
         while ((n = line.find(PATH_TAG)) != std::string::npos)
             line.replace(n, PATH_TAG.length(), executablePath);
+        while ((n = line.find(trustLevel_TAG)) != std::string::npos)
+            line.replace(n, trustLevel_TAG.length(), trustLevel);
         newfile << line << std::endl;
     }
     newfile.close();
