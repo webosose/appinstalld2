@@ -383,6 +383,9 @@ bool ServiceInstallerUtility::generateUnifiedAppPermissionsFile(const std::strin
         groups << "public";
     }
 
+    if (appInfo.isQml())
+        groups << "application.operation";
+
     for (const auto &service : requiredServices)
         groups << Settings::instance().getGroupNameForService(service);
 
