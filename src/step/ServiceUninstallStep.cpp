@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2020 LG Electronics, Inc.
+// Copyright (c) 2017-2021  LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -52,6 +52,7 @@ bool ServiceUninstallStep::proceed(Task *task)
             Settings::instance().getLunaUnifiedServicesDir(true),
             Settings::instance().getLunaUnifiedPermissionsDir(true, true),
             Settings::instance().getLunaUnifiedAPIPermissionsDir(true),
+            Settings::instance().getLunaUnifiedGroupsDir(true),
             Settings::instance().getLunaUnifiedManifestsDir(true, true)
         });
     }
@@ -67,6 +68,7 @@ bool ServiceUninstallStep::proceed(Task *task)
         Settings::instance().getLunaUnifiedServicesDir(false),
         Settings::instance().getLunaUnifiedPermissionsDir(false, true),
         Settings::instance().getLunaUnifiedAPIPermissionsDir(false),
+        Settings::instance().getLunaUnifiedGroupsDir(false),
         Settings::instance().getLunaUnifiedManifestsDir(false, true)
     });
 

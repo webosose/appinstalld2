@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2020 LG Electronics, Inc.
+// Copyright (c)  2013-2021  LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -105,6 +105,8 @@ public:
      */
     const char *getLunaUnifiedAPIPermissionsDir(bool verified);
 
+    const char *getLunaUnifiedGroupsDir(bool verified);
+
     /*! get luna unified manifest directory path
      */
     const char *getLunaUnifiedManifestsDir(bool verified, bool full);
@@ -124,6 +126,8 @@ public:
     /*! form file name appId.api.json
      */
     std::string getLunaUnifiedAPIJsonFileName(const std::string &appId);
+
+    std::string getLunaUnifiedGroupJsonFileName(const std::string &appId);
 
     /*! form security group name for specific service
      */

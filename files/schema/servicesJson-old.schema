@@ -1,0 +1,69 @@
+{
+    "id":"ServiceDescription",
+    "type":"object",
+    "properties":{
+        "id":{
+            "type":"string",
+            "description":"ID of the service array., e.g., \"com.webos.sync.service\" . Every service array has a unique ID."
+        },
+        "description":{
+            "type":"string",
+            "description":"Provides description of the service array."
+        },
+        "version":{
+            "type":"string",
+            "description":"Shows the version of the service."
+        },
+        "services":{
+            "type":"array",
+            "items":{
+                "type":"object",
+                "properties":{
+                    "name":{
+                        "type":"string",
+                        "description":"Describes the service name"
+                    },
+                    "description":{
+                        "type":"string",
+                        "description":"Service description"
+                    },
+                    "Commands":{
+                        "type":"array",
+                        "items":{
+                            "type":"object",
+                            "properties":{
+                                "name":{
+                                    "type":"string",
+                                    "description":"Gives absolute path of api of the service"
+                                },
+                                "description":{
+                                    "type":"string",
+                                    "description":"Gives the api description"
+                                },
+                                "public":{
+                                    "type":"boolean",
+                                    "description":"if it sets to true , then it is a public API otherwise it's a internal api "
+                                }
+                            },
+                            "description":"Array of commands and their groups",
+                            "required":[
+                                "name",
+                                "public"
+                            ]
+                        },
+                        "description":"An object array of APIs of that service"
+                    }
+                },
+                "description":"Array of service properties",
+                "required":[
+                    "name"
+                ]
+            },
+            "description":"An object array of services"
+        }
+    },
+    "required":[
+        "id",
+        "services"
+    ]
+}

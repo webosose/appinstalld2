@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2018 LG Electronics, Inc.
+// Copyright (c) 2013-2021  LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -55,7 +55,12 @@ public:
     std::string getPath(bool absolute = true) const;
     //! Get Jailer type for native service
     std::string getJailerType() const;
-
+    //! Get service List
+    pbnjson::JValue getServiceList() const;
+    //! Get "schemaVersion" field from services.json
+    bool hasSchemaVersion() const;
+    //!  validate the services.json against old and new schema
+    bool isValidSchema();
 private:
     //! Null Constructor
     ServiceInfo();

@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2019 LG Electronics, Inc.
+// Copyright (c)  2013-2021 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 #include "ServiceInfo.h"
 #include "base/JUtil.h"
+#include "base/Logging.h"
 
 ServiceInfo ServiceInfo::generate(std::string id, std::string type, std::string path, std::string exec)
 {
@@ -107,6 +108,7 @@ std::string ServiceInfo::getJailerType() const
 bool ServiceInfo::load()
 {
     std::string path = m_servicePath + "/services.json";
+    LOG_DEBUG("[ServiceInfo::load]  path: %s ",path.c_str());
     m_info = JUtil::parseFile(path, std::string(""));
 
     if (m_info.isNull())
@@ -115,6 +117,50 @@ bool ServiceInfo::load()
     // apply default jailer
     if (getType() == "native")
         applyJailer(JAILER_NATIVE);
+
+    return true;
+}
+
+pbnjson::JValue ServiceInfo::getServiceList() const
+{
+    return m_info["services"];
+}
+
+bool ServiceInfo::hasSchemaVersion() const
+{
+
+    return m_info.hasKey("schemaVersion");
+}
+
+
+bool ServiceInfo::isValidSchema()
+{
+   std::string path = m_servicePath + "/services.json";
+    LOG_DEBUG("[ServiceInfo::isValidSchema]  path: %s ",path.c_str());
+   if (hasSchemaVersion() )
+    {
+        std::string servicesJsonSchema = "servicesJson-" + m_info["schemaVersion"].asString();
+	LOG_DEBUG("[ServiceInfo::isValidSchema]  start schema  validation against %s  schema \n" ,servicesJsonSchema.c_str());
+        m_info = JUtil::parseFile(path, servicesJsonSchema);
+        if (m_info.isNull())
+        {
+	    LOG_DEBUG("[ServiceInfo::isValidSchema]  schema  validation against %s   schema is failed  \n",servicesJsonSchema.c_str());
+            return false;
+        }
+	LOG_DEBUG("[ServiceInfo::isValidSchema]  schema  validation against %s  schema is success",servicesJsonSchema.c_str());
+    }
+    else
+    {
+        LOG_DEBUG("[ServiceInfo::isValidSchema]  start schema  validation against old  schema \n");
+        std::string servicesJsonSchema = "servicesJson-old";
+        m_info = JUtil::parseFile(path, servicesJsonSchema);
+        if (m_info.isNull())
+        {
+            LOG_DEBUG("[ServiceInfo::isValidSchema]  schema  validation against old schema is failed  \n");
+            return false;
+        }
+        LOG_DEBUG("[ServiceInfo::isValidSchema]  schema  validation against old  schema is success");
+    }
 
     return true;
 }

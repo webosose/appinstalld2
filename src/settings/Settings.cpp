@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2020 LG Electronics, Inc.
+// Copyright (c) 2013-2021  LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -191,6 +191,13 @@ const char *Settings::getLunaUnifiedAPIPermissionsDir(bool verified)
     return verified ? WEBOS_INSTALL_SYSBUS_DYNAPIPERMISSIONSDIR : WEBOS_INSTALL_SYSBUS_DEVAPIPERMISSIONSDIR;
 }
 
+const char *Settings::getLunaUnifiedGroupsDir(bool verified)
+{
+    return verified ? "/var/luna-service2/groups.d" : "/var/luna-service2-dev/groups.d";
+}
+
+
+
 const char *Settings::getLunaUnifiedManifestsDir(bool verified, bool full)
 {
     //TODO : Replace path definition from webospaths.h
@@ -219,6 +226,12 @@ std::string Settings::getLunaUnifiedAPIJsonFileName(const std::string &appId)
 {
     return getLunaUnifiedJsonFileName(appId, "api");
 }
+
+std::string Settings:: getLunaUnifiedGroupJsonFileName(const std::string &appId)
+{
+    return getLunaUnifiedJsonFileName(appId, "group");
+}
+
 
 std::string Settings::getGroupNameForService(const std::string &serviceId)
 {
