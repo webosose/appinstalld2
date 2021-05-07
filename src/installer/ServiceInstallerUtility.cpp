@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2020 LG Electronics, Inc.
+// Copyright (c) 2013-2021 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -73,7 +73,7 @@ bool ServiceInstallerUtility::install(std::string appId,
 {
     std::string applicationPath = installBasePath + Settings::instance().getApplicationInstallPath() + "/" + appId;
     std::string packagePath = installBasePath + Settings::instance().getPackageinstallPath() + "/" + appId;
-
+    LOG_DEBUG("[ServiceInstallerUtility::install]  packagePath : %s", packagePath.c_str());
     AppInfo appInfo(applicationPath);
     if (!appInfo.isLoaded()) {
         Utils::async([=] {onComplete(false, "Cannot find appinfo.json");});
@@ -94,10 +94,12 @@ bool ServiceInstallerUtility::install(std::string appId,
 
     // generate service files
     for (auto iter = serviceLists.begin(); iter != serviceLists.end(); ++iter) {
-        std::string servicePath = installBasePath + Settings::instance().getServiceinstallPath() + "/" + (*iter);
-        ServiceInfo serviceInfo(servicePath);
-        serviceInfo.applyRootPath(pathInfo.root);
 
+        std::string servicePath = installBasePath + Settings::instance().getServiceinstallPath() + "/" + (*iter);
+        LOG_DEBUG("[ServiceInstallerUtility::install]  servicePath: %s ",servicePath.c_str());
+        ServiceInfo serviceInfo(servicePath);
+
+        serviceInfo.applyRootPath(pathInfo.root);
         if (serviceInfo.getType() == "native") {
             if (!pathInfo.verified)
                 serviceInfo.applyJailer(ServiceInfo::JAILER_DEV);
@@ -252,7 +254,8 @@ bool ServiceInstallerUtility::generateFilesForService(const PathInfo &pathInfo,
 {
     return (generateRoleFileForService(pathInfo.roled, servicesInfo, appInfo) &&
             generatePermissionFileForService(pathInfo.permissiond, pathInfo.verified, servicesInfo, appInfo) &&
-            generateAPIPermissionsFileForService(pathInfo.api_permissiond, pathInfo.verified, servicesInfo, appInfo) &&
+            generateAPIPermissionsFileForService(pathInfo, servicesInfo, appInfo) &&
+            generateGroupFileForService(pathInfo, servicesInfo, appInfo) &&
             generateServiceFile(pathInfo.serviced, servicesInfo, appInfo));
 }
 
@@ -438,7 +441,179 @@ bool ServiceInstallerUtility::generatePermissionFileForService(const std::string
                                              "*");
 }
 
-bool ServiceInstallerUtility::generateAPIPermissionsFileForService(const std::string &path,
+bool ServiceInstallerUtility::generateAPIPermissionsFileForServiceNewSchema(const std::string &path,
+                                                                   bool verified,
+                                                                   const ServiceInfo &servicesInfo,
+                                                                   const AppInfo &appInfo)
+{
+    if (!Utils::make_dir(path))
+        return false;
+
+    // Prepare API permissions file for service
+    std::ofstream ofs { path + ("/" + Settings::instance().getLunaUnifiedAPIJsonFileName(servicesInfo.getId())) };
+    if (!ofs)
+        return false;
+
+    using namespace pbnjson;
+
+    pbnjson::JValue callback_method = Array();
+    callback_method << (servicesInfo.getId() + "/info");
+    callback_method << (servicesInfo.getId() + "/quit");
+    pbnjson::JValue apiPerm = pbnjson::Object() << JValue::KeyValue("applicationinstall.interface", callback_method);
+    // Dump the API permissions object into the file
+
+    auto services = servicesInfo.getServiceList();
+    LOG_DEBUG("[ServiceInstallerUtility::generateAPIPermissionsFileForServiceNewSchema]  services : %s", services.stringify().c_str());
+
+    for ( auto servicesItem : services.items())
+    {
+        LOG_DEBUG("[ServiceInstallerUtility::generateAPIPermissionsFileForServiceNewSchema]  servicesItem : %s", servicesItem.stringify().c_str());
+
+        auto commandList = servicesItem["Commands"];
+
+        for ( auto commandListItem : commandList.items())
+        {
+            pbnjson::JValue apiArray = pbnjson::JArray ();
+            std::string commandName = servicesInfo.getId() + "/" + commandListItem["name"].asString();
+            auto groupList = servicesItem["groups"];
+            for (auto groupListItem : groupList.items())
+            {
+            std::string commandGroup = servicesInfo.getId() + "." + groupListItem.asString();
+            LOG_DEBUG("[ServiceInstallerUtility::generateAPIPermissionsFileForServiceNewSchema]  commandGroup : %s", commandGroup.c_str());
+            if(apiPerm.hasKey(commandGroup))
+            {
+                apiArray = apiPerm[commandGroup];
+                apiArray << commandName;
+            }
+            else
+                apiArray << commandName;
+
+            apiPerm.put(commandGroup,apiArray);
+            }
+        }
+    }
+    LOG_DEBUG("[ServiceInstallerUtility::generateAPIPermissionsFileForServiceNewSchema]  apiPerm json object: %s", apiPerm.stringify().c_str());
+
+    ofs << JUtil::toSimpleString(apiPerm) << std::endl;
+    ofs.close();
+
+    return true;
+
+}
+
+bool ServiceInstallerUtility::generateAPIPermissionsFileForService(const PathInfo &pathInfo,
+                                                      const ServiceInfo &servicesInfo,
+                                                      const AppInfo &appInfo)
+{
+    if ( servicesInfo.hasSchemaVersion() )
+	{		
+        LOG_DEBUG("[ServiceInstallerUtility::generateAPIPermissionsFileForService]  New Schema");
+        return generateAPIPermissionsFileForServiceNewSchema(pathInfo.api_permissiond, pathInfo.verified, servicesInfo, appInfo);
+	}
+    else
+	{
+        LOG_DEBUG("[ServiceInstallerUtility::generateAPIPermissionsFileForService]  Old Schema");
+        return generateAPIPermissionsFileForServiceOldSchema(pathInfo.api_permissiond, pathInfo.verified, servicesInfo, appInfo);
+	}
+}
+
+
+bool ServiceInstallerUtility::generateGroupFileForServiceOldSchema(const std::string &path,
+                                                                   bool verified,
+                                                                   const ServiceInfo &servicesInfo,
+                                                                   const AppInfo &appInfo)
+{
+
+    if (!Utils::make_dir(path))
+        return false;
+
+    // Prepare GroupFileForFile file for service
+    std::ofstream ofs { path + ("/" + Settings::instance().getLunaUnifiedGroupJsonFileName(servicesInfo.getId())) };
+    if (!ofs)
+        return false;
+
+    using namespace pbnjson;
+
+    // Array of provided allowedNames  for target service
+    JValue allowedNames = Array();
+    allowedNames << (servicesInfo.getId());
+    JValue group = Object() << JValue::KeyValue("allowedNames", allowedNames);
+    std::string groupTrustLevel =  "dev";
+    pbnjson::JValue groupTrustLevelArray = pbnjson::JArray ();
+    groupTrustLevelArray << groupTrustLevel;
+    auto services = servicesInfo.getServiceList();
+    LOG_DEBUG("[ServiceInstallerUtility::generateGroupFileForServiceOldSchema]  services : %s", services.stringify().c_str());
+    group.put(Settings::instance().getGroupNameForService(servicesInfo.getId()),groupTrustLevelArray);
+    LOG_DEBUG("[ServiceInstallerUtility::generateGroupFileForServiceOldSchema]  group json object: %s", group.stringify().c_str());
+    ofs << JUtil::toSimpleString(group) << std::endl;
+    ofs.close();
+    return true;
+
+}
+
+bool ServiceInstallerUtility::generateGroupFileForServiceNewSchema(const std::string &path,
+                                                                   bool verified,
+                                                                   const ServiceInfo &servicesInfo,
+                                                                   const AppInfo &appInfo)
+{
+
+    if (!Utils::make_dir(path))
+        return false;
+
+    // Prepare GroupFileForFile file for service
+    std::ofstream ofs { path + ("/" + Settings::instance().getLunaUnifiedGroupJsonFileName(servicesInfo.getId())) };
+    if (!ofs)
+        return false;
+
+    using namespace pbnjson;
+
+    // Array of provided allowedNames  for target service
+    JValue allowedNames = Array();
+    allowedNames << (servicesInfo.getId());
+    JValue group = Object() << JValue::KeyValue("allowedNames", allowedNames);
+
+    auto services = servicesInfo.getServiceList();
+    LOG_DEBUG("[ServiceInstallerUtility::generateGroupFileForServiceNewSchema]  services : %s", services.stringify().c_str());
+
+    for ( auto servicesItem : services.items())
+    {
+        LOG_DEBUG("[ServiceInstallerUtility::generateGroupFileForServiceNewSchema]  servicesItem : %s", servicesItem.stringify().c_str());
+
+        auto groupList = servicesItem["groups"];
+
+        for ( auto groupListItem : groupList.items())
+        {
+            pbnjson::JValue groupTrustLevelArray = pbnjson::JArray ();
+            std::string groupName =  servicesInfo.getId() + "." + groupListItem ["name"].asString();
+            groupTrustLevelArray <<  groupListItem ["acgTrustLevel"];
+            LOG_DEBUG("[ServiceInstallerUtility::generateGroupFileForServiceNewSchema]  groupListItem : %s", groupListItem.stringify().c_str());
+            LOG_DEBUG("[ServiceInstallerUtility::generateGroupFileForServiceNewSchema]  groupName : %s", groupName);
+            group.put(groupName, groupTrustLevelArray);
+        }
+    }
+    LOG_DEBUG("[ServiceInstallerUtility::generateGroupFileForServiceNewSchema]  group json object: %s", group.stringify().c_str());
+
+    ofs << JUtil::toSimpleString(group) << std::endl;
+    ofs.close();
+
+    return true;
+}
+
+bool ServiceInstallerUtility::generateGroupFileForService(const PathInfo &pathInfo,
+                                                      const ServiceInfo &servicesInfo,
+                                                      const AppInfo &appInfo)
+{
+    if ( servicesInfo.hasSchemaVersion() )
+        return generateGroupFileForServiceNewSchema(pathInfo.groupd, pathInfo.verified, servicesInfo, appInfo);
+    else
+        return generateGroupFileForServiceOldSchema(pathInfo.groupd, pathInfo.verified, servicesInfo, appInfo);
+}
+
+
+
+
+
+bool ServiceInstallerUtility::generateAPIPermissionsFileForServiceOldSchema(const std::string &path,
                                                                    bool verified,
                                                                    const ServiceInfo &servicesInfo,
                                                                    const AppInfo &appInfo)
@@ -529,6 +704,7 @@ bool ServiceInstallerUtility::generateManifestFile(const PathInfo &pathInfo,
     pbnjson::JValue serviceFileArray = pbnjson::Array();
     pbnjson::JValue permissiondFileArray = pbnjson::Array();
     pbnjson::JValue api_permissiondFileArray = pbnjson::Array();
+    pbnjson::JValue groupFileArray = pbnjson::Array();
     std::string fileDir = "";
     std::string filePath = "";
 
@@ -539,6 +715,10 @@ bool ServiceInstallerUtility::generateManifestFile(const PathInfo &pathInfo,
     for (auto iter = serviceLists.begin(); iter != serviceLists.end(); ++iter) {
         std::string servicePath = installBasePath + Settings::instance().getServiceinstallPath() + "/" + (*iter);
         ServiceInfo serviceInfo(servicePath);
+        LOG_DEBUG("[ServiceInstallerUtility] generateManifestFile : SchemaValidation started");
+        if (!serviceInfo.isValidSchema()) {
+            return false;
+        }
 
         //generateRoleFileForService
         filePath = adjustLunaDirForManifest(pathInfo.root, pathInfo.roled);
@@ -559,6 +739,12 @@ bool ServiceInstallerUtility::generateManifestFile(const PathInfo &pathInfo,
         filePath = adjustLunaDirForManifest(pathInfo.root, pathInfo.serviced);
         fileDir = filePath + "/" + serviceInfo.getId() + ".service";
         serviceFileArray.append(fileDir);
+
+        //group files for service
+        filePath = adjustLunaDirForManifest(pathInfo.root, pathInfo.groupd);
+        fileDir = filePath + "/" + Settings::instance().getLunaUnifiedGroupJsonFileName(serviceInfo.getId());
+        groupFileArray.append(fileDir);
+
     }
 
     //generateRoleFileForApp
@@ -589,6 +775,8 @@ bool ServiceInstallerUtility::generateManifestFile(const PathInfo &pathInfo,
         manifestObj.put("apiPermissionFiles", api_permissiondFileArray);
     if (0 < permissiondFileArray.arraySize())
         manifestObj.put("clientPermissionFiles", permissiondFileArray);
+    if (0 < groupFileArray.arraySize())
+        manifestObj.put("groupsFiles", groupFileArray);
 
     if (!Utils::make_dir(pathInfo.manifestsd))
         return false;
@@ -621,3 +809,4 @@ std::string ServiceInstallerUtility::adjustLunaDirForManifest(const std::string 
         return resultPath;
     }
 }
+

@@ -1,0 +1,156 @@
+{
+    "id":"ServiceDescription",
+    "type":"object",
+    "properties":{
+        "id":{
+            "type":"string",
+            "description":"ID of the service array., e.g., \"com.webos.sync.service\" . Every service array has a unique ID."
+        },
+        "description":{
+            "type":"string",
+            "description":"Provides description of the service array."
+        },
+        "version":{
+            "type":"string",
+            "description":"Shows the version of the service."
+        },
+        "schemaVersion":{
+            "type":"string",
+            "description":"Describes the version of the schema."
+        },
+        "services":{
+            "type":"array",
+            "items":{
+                "type":"object",
+                "properties":{
+                    "name":{
+                        "type":"string",
+                        "description":"Describes the service name"
+                    },
+                    "description":{
+                        "type":"string",
+                        "description":"Service description"
+                    },
+                    "type":{
+                        "type":"string",
+                        "description":"Can be  either JS service or Native service",
+                        "enum":[
+                            "JS",
+                            "Native"
+                        ]
+                    },
+                    "isDynamicService":{
+                        "type":"string",
+                        "default":"no",
+                        "description":"If it sets to  yes, then serviceType is  dynamic else serviceType is static."
+                    },
+                    "acgTrustLevel":{
+                        "type":"string",
+                        "enum":[
+                            "oem",
+                            "dev",
+                            "part"
+                        ],
+                        "description":"Defines which APIs a service can call."
+                    },
+                    "allowedNames":{
+                        "type":"array",
+                        "items":{
+                            "type":"string"
+                        },
+                        "description":"It lists out the multiple service names ."
+                    },
+                    "outbound":{
+                        "type":"array",
+                        "items":{
+                            "type":"string"
+                        },
+                        "description":"It describes Array of services that this service is allowed to send requests to."
+                    },
+                    "isPrivileged":{
+                        "type":"string",
+                        "default":"no",
+                        "description":"If it sets to yes, then type is prilieged else  type is regular."
+                    },
+                    "requiredPermissions":{
+                        "type":"array",
+                        "items":{
+                            "type":"string"
+                        },
+                        "description":"Specifies the security groups required to run the service."
+                    },
+                    "Commands":{
+                        "type":"array",
+                        "items":{
+                            "type":"object",
+                            "properties":{
+                                "name":{
+                                    "type":"string",
+                                    "description":"Gives absolute path of api of the service"
+                                },
+                                "description":{
+                                    "type":"string",
+                                    "description":"Gives the api description"
+                                },
+                                "groups":{
+                                    "type":"array",
+                                    "items":{
+                                        "type":"string"
+                                    },
+                                    "description":"Each API is placed under one or muliple groups. Lists out the groups API belongs to"
+                                }
+                            },
+                            "description":"Array of commands and their groups",
+                            "required":[
+                                "name",
+                                "groups"
+                            ]
+                        },
+                        "description":"An object array of APIs of that service"
+                    },
+                    "groups":{
+                        "type":"array",
+                        "items":{
+                            "type":"object",
+                            "properties":{
+                                "name":{
+                                    "type":"string",
+                                    "description":"it describes group name"
+                                },
+                                "description":{
+                                    "type":"string",
+                                    "description":"it describes the group information"
+                                },
+                                "acgTrustLevel":{
+                                    "type":"array",
+                                    "description":"it describes group trust level"
+                                }
+                            },
+                            "description":"Group names and their trust level",
+                            "required":[
+                                "name",
+                                "acgTrustLevel"
+                            ]
+                        },
+                        "description":"An object array of  groups"
+                    }
+                },
+                "description":"Array of service properties",
+                "required":[
+                    "name",
+                    "type",
+                    "isDynamicService",
+                    "requiredPermissions",
+                    "Commands",
+                    "groups"
+                ]
+            },
+            "description":"An object array of services"
+        }
+    },
+    "required":[
+        "id",
+        "services",
+        "schemaVersion"
+    ]
+}

@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2020 LG Electronics, Inc.
+// Copyright (c)  2017-2021  LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -62,6 +62,7 @@ bool ServiceInstallStep::proceed(Task *task)
         pathInfo.serviced = lunaFilesPath + Settings::instance().getLunaUnifiedServicesDir(verify);
         pathInfo.permissiond = lunaFilesPath + Settings::instance().getLunaUnifiedPermissionsDir(verify, false);
         pathInfo.api_permissiond = lunaFilesPath + Settings::instance().getLunaUnifiedAPIPermissionsDir(verify);
+        pathInfo.groupd =  lunaFilesPath + Settings::instance().getLunaUnifiedGroupsDir(verify);
         pathInfo.manifestsd = lunaFilesPath + Settings::instance().getLunaUnifiedManifestsDir(verify, false);
     }
     else
@@ -75,6 +76,7 @@ bool ServiceInstallStep::proceed(Task *task)
         pathInfo.serviced = Settings::instance().getLunaUnifiedServicesDir(verify);
         pathInfo.permissiond = Settings::instance().getLunaUnifiedPermissionsDir(verify, true);
         pathInfo.api_permissiond = Settings::instance().getLunaUnifiedAPIPermissionsDir(verify);
+        pathInfo.groupd = Settings::instance().getLunaUnifiedGroupsDir(verify);
         pathInfo.manifestsd = Settings::instance().getLunaUnifiedManifestsDir(verify, true);
     }
 

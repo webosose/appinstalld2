@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2020 LG Electronics, Inc.
+// Copyright (c) 2013-2021  LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ public:
         std::string serviced;        // unified service path
         std::string permissiond;     // unified permission path
         std::string api_permissiond; // unified api permission path
+        std::string groupd;    // unified group path
         std::string manifestsd;      // unified manifest path
     } PathInfo;
 
@@ -104,7 +105,15 @@ private:
     static bool generatePermissionFileForService(const std::string &path, bool verified, const ServiceInfo &servicesInfo, const AppInfo &appInfo);
 
     //! generate provided permissions file for service in passed path
-    static bool generateAPIPermissionsFileForService(const std::string &path, bool verified, const ServiceInfo &servicesInfo, const AppInfo &appInfo);
+    static bool generateAPIPermissionsFileForService(const PathInfo &pathInfo, const ServiceInfo &servicesInfo, const AppInfo &appInfo);
+
+    static bool generateAPIPermissionsFileForServiceNewSchema(const std::string &path, bool verified, const ServiceInfo &servicesInfo, const AppInfo &appInfo);
+    static bool generateAPIPermissionsFileForServiceOldSchema(const std::string &path, bool verified, const ServiceInfo &servicesInfo, const AppInfo &appInfo);
+
+    static bool generateGroupFileForService(const PathInfo &pathInfo, const ServiceInfo &servicesInfo, const AppInfo &appInfo);
+    static bool generateGroupFileForServiceNewSchema(const std::string &path, bool verified, const ServiceInfo &servicesInfo, const AppInfo &appInfo);
+    static bool generateGroupFileForServiceOldSchema(const std::string &path, bool verified, const ServiceInfo &servicesInfo, const AppInfo &appInfo);
+
 
     //! generate manifest file
     static bool generateManifestFile(const PathInfo &pathInfo, const std::string& installBasePath, PackageInfo &packageInfo, const AppInfo &appInfo);
@@ -112,5 +121,6 @@ private:
     //! get luna unified ls configuration directory path for manifest file
     static std::string adjustLunaDirForManifest(const std::string &rootPath, const std::string &relativePath);
 };
+
 
 #endif
