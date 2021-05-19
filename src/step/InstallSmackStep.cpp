@@ -1,4 +1,4 @@
-// Copyright (c) 2020 LG Electronics, Inc.
+// Copyright (c) 2020-2021 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -105,7 +105,7 @@ bool InstallSmackStep::proceed(Task *task) {
 
     std::string rulesFilePath = SMACK_RULES_DIR + packageId;
 
-    g_mkdir_with_parents(SMACK_RULES_DIR, 0755);
+    (void)g_mkdir_with_parents(SMACK_RULES_DIR, 0755);
     index = 0;
     argv[index++] = (gchar *)SMACK_RULES_GEN_EXEC;
     if (appInfo.isWeb()) argv[index++] = (gchar *)"-bw";
@@ -224,7 +224,7 @@ bool InstallSmackStep::proceed(Task *task) {
             }
 
             std::string rulesFilePath = SMACK_RULES_DIR + serviceId;
-            g_mkdir_with_parents(SMACK_RULES_DIR, 0755);
+            (void)g_mkdir_with_parents(SMACK_RULES_DIR, 0755);
             index = 0;
             argv[index++] = (gchar *)SMACK_RULES_GEN_EXEC;
             argv[index++] = (gchar *)"-bs";
@@ -297,4 +297,3 @@ bool InstallSmackStep::proceed(Task *task) {
     m_parentTask->proceed();
     return true;
 }
-
