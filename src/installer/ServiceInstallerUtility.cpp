@@ -39,7 +39,7 @@ static void roleGenerate(std::string templatePath,
 {
     std::string line;
     size_t n;
-    std::string trustLevel="oem";
+    std::string trustLevel="dev";
     static const std::string ID_TAG = "XXXIDXXX";
     static const std::string PATH_TAG = "XXXEXEPATHXXX";
     static const std::string trustLevel_TAG = "XXXPERMLEVELXXX";
