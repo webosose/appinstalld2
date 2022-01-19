@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2021 LG Electronics, Inc.
+// Copyright (c) 2013-2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ static void roleGenerate(std::string templatePath,
 {
     std::string line;
     size_t n;
-    std::string trustLevel="dev";
+    std::string trustLevel="oem";
     static const std::string ID_TAG = "XXXIDXXX";
     static const std::string PATH_TAG = "XXXEXEPATHXXX";
     static const std::string trustLevel_TAG = "XXXPERMLEVELXXX";
