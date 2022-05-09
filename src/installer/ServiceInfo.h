@@ -61,6 +61,8 @@ public:
     bool hasSchemaVersion() const;
     //!  validate the services.json against old and new schema
     bool isValidSchema();
+    //! Get required ACG for permissions
+    pbnjson::JValue getRequiredPermissions() const;
 private:
     //! Null Constructor
     ServiceInfo();

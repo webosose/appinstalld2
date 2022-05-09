@@ -238,6 +238,29 @@ namespace CallChainEventHandler
         return true;
     }
 
+    PkgInfo::PkgInfo(const char *serviceName, const char* sessionId, std::string id)
+        : LSCallItem(serviceName,
+            "luna://com.webos.applicationManager/getPackageInfo", "", sessionId)
+    {
+        pbnjson::JValue payload = pbnjson::Object();
+        payload.put("id", id);
+        setPayload(payload.stringify().c_str());
+    }
+
+    bool PkgInfo::onReceiveCall(pbnjson::JValue message)
+    {
+        bool returnValue = message["returnValue"].asBool();
+        if (returnValue)
+        {
+            pbnjson::JValue chainData = getChainData();
+            chainData.put("packageInfo", message["packageInfo"]);
+            setChainData(chainData);
+            return true;
+        }
+
+        return false;
+    }
+
     RemoveDb::RemoveDb(const char* serviceName, const char* sessionId, pbnjson::JValue owners)
         : LSCallItem(serviceName, "luna://com.webos.service.db/removeAppData", "", sessionId)
     {

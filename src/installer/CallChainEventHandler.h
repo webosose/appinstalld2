@@ -22,7 +22,8 @@
 
 namespace CallChainEventHandler
 {
-    class AppRunning : public LSCallItem {
+    class AppRunning : public LSCallItem
+    {
     public:
         AppRunning(const char *serviceName, const char *sessionId, std::string id);
 
@@ -76,6 +77,15 @@ namespace CallChainEventHandler
         int m_numResponse;
         int m_numServices;
         const char *m_sessionId;
+    };
+
+    class PkgInfo : public LSCallItem
+    {
+    public:
+        PkgInfo(const char *serviceName, const char* sessionId, std::string id);
+
+    protected:
+        virtual bool onReceiveCall(pbnjson::JValue message);
     };
 
     class RemoveDb : public LSCallItem {

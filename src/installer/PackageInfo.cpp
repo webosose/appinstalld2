@@ -16,6 +16,7 @@
 
 #include "base/JUtil.h"
 #include "PackageInfo.h"
+#include "base/Logging.h"
 
 const std::string DEFAULT_VERSION = "1.0.0";
 
@@ -57,8 +58,14 @@ std::string PackageInfo::getVersion() const
     return m_info.hasKey("version") ? m_info["version"].asString() : DEFAULT_VERSION;
 }
 
+pbnjson::JValue PackageInfo::getRequiredPermissions() const
+{
+    return m_info.hasKey("requiredPermissions") ? m_info["requiredPermissions"] : pbnjson::JValue();
+}
+
 bool PackageInfo::load()
 {
+    LOG_DEBUG("PackageInfo::load() called");
     std::string path = m_packagePath + "/packageinfo.json";
     m_info = JUtil::parseFile(path, std::string(""));
 
@@ -66,4 +73,25 @@ bool PackageInfo::load()
         return false;
 
     return true;
+}
+
+void PackageInfo::createFromAppInfo(const AppInfo &appInfo)
+{
+    if (!appInfo.isLoaded())
+        return;
+
+    m_info = pbnjson::Object();
+    m_info.put("id", appInfo.getId());
+    m_info.put("version", appInfo.getVersion());
+
+    m_loaded = true;
+}
+
+void PackageInfo::loadFromAppInfo(const AppInfo &appInfo)
+{
+    if (!isLoaded() || !appInfo.isLoaded())
+        return;
+
+    if (!m_info.hasKey("requiredPermissions"))
+        m_info.put("requiredPermissions", appInfo.getRequiredPermissions());
 }

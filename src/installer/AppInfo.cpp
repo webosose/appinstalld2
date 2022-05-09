@@ -122,10 +122,7 @@ pbnjson::JValue AppInfo::getInstallConfig() const
 
 pbnjson::JValue AppInfo::getRequiredPermissions() const
 {
-    if (m_info.isNull())
-        return pbnjson::JValue();
-
-    return m_info["requiredPermissions"];
+    return m_info.hasKey("requiredPermissions") ? m_info["requiredPermissions"] : pbnjson::JValue();
 }
 
 bool AppInfo::load()

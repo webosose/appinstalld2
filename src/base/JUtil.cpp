@@ -132,3 +132,14 @@ pbnjson::JSchema JUtil::loadSchema(const std::string& schemaName, bool cache)
 
     return schema;
 }
+
+pbnjson::JValue JUtil::appendArray(pbnjson::JValue arr1, pbnjson::JValue arr2)
+{
+    pbnjson::JValue ret = pbnjson::Array();
+    for (const auto &v : arr1.items())
+        ret.append(v);
+    for (const auto &v : arr2.items())
+        ret.append(v);
+
+    return ret;
+}
