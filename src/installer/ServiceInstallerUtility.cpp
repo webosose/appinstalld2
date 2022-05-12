@@ -74,17 +74,21 @@ bool ServiceInstallerUtility::install(std::string appId,
     std::string applicationPath = installBasePath + Settings::instance().getApplicationInstallPath() + "/" + appId;
     std::string packagePath = installBasePath + Settings::instance().getPackageinstallPath() + "/" + appId;
     LOG_DEBUG("[ServiceInstallerUtility::install]  packagePath : %s", packagePath.c_str());
+
+    PackageInfo packageInfo(packagePath);
     AppInfo appInfo(applicationPath);
-    if (!appInfo.isLoaded()) {
+
+    if (!packageInfo.isLoaded())
+        packageInfo.createFromAppInfo(appInfo);
+    packageInfo.loadFromAppInfo(appInfo);
+
+    std::vector<std::string> serviceLists;
+    packageInfo.getServices(serviceLists);
+
+    if (serviceLists.empty() && !appInfo.isLoaded()) {
         Utils::async([=] {onComplete(false, "Cannot find appinfo.json");});
         return false;
     }
-
-    std::vector<std::string> serviceLists;
-
-    PackageInfo packageInfo(packagePath);
-    if (packageInfo.isLoaded())
-        packageInfo.getServices(serviceLists);
 
     // generate Manifest file
     if (!ServiceInstallerUtility::generateManifestFile(pathInfo, installBasePath, packageInfo, appInfo)) {
@@ -114,25 +118,28 @@ bool ServiceInstallerUtility::install(std::string appId,
             return false;
         }
 
-        if (!generateFilesForService(pathInfo, serviceInfo, appInfo)) {
+        if (!generateFilesForService(pathInfo, serviceInfo, appInfo, packageInfo)) {
             Utils::async([=] {onComplete(false, "Failed to generate service files");});
             return false;
         }
     }
 
     // native app has default role file
-    if (appInfo.isNative()) {
-        if (!generateRoleFileForNativeApp(pathInfo.roled, appInfo.getId(), appInfo.getMain(true)) ||
-            !generatePermissionFileForNativeApp(pathInfo.permissiond, pathInfo.verified, appInfo, serviceLists)) {
-            Utils::async([=] {onComplete(false, "Failed to generate role and permission file for Native application");});
-            return false;
-        }
-    } else if (appInfo.isWeb() || appInfo.isQml()) {
-        // Web/Qml applications should have role file too
-        if (!generateRoleFileForWebApp(pathInfo.roled, appInfo.getId()) ||
-            !generatePermissionFileForWebApp(pathInfo.permissiond, pathInfo.verified, appInfo, serviceLists)) {
-            Utils::async([=] {onComplete(false, "Failed to generate role and permission file for Web application");});
-            return false;
+    if (appInfo.isLoaded())
+    {
+        if (appInfo.isNative()) {
+            if (!generateRoleFileForNativeApp(pathInfo.roled, appInfo.getId(), appInfo.getMain(true)) ||
+                !generatePermissionFileForNativeApp(pathInfo.permissiond, pathInfo.verified, packageInfo, serviceLists)) {
+                Utils::async([=] {onComplete(false, "Failed to generate role and permission file for Native application");});
+                return false;
+            }
+        } else if (appInfo.isWeb() || appInfo.isQml()) {
+            // Web/Qml applications should have role file too
+            if (!generateRoleFileForWebApp(pathInfo.roled, appInfo.getId()) ||
+                !generatePermissionFileForWebApp(pathInfo.permissiond, pathInfo.verified, packageInfo, serviceLists, appInfo.getType())) {
+                Utils::async([=] {onComplete(false, "Failed to generate role and permission file for Web application");});
+                return false;
+            }
         }
     }
 
@@ -250,13 +257,14 @@ bool ServiceInstallerUtility::removeOne(const std::string &appId, const PathInfo
 
 bool ServiceInstallerUtility::generateFilesForService(const PathInfo &pathInfo,
                                                       const ServiceInfo &servicesInfo,
-                                                      const AppInfo &appInfo)
+                                                      const AppInfo &appInfo,
+                                                      const PackageInfo &packageInfo)
 {
     return (generateRoleFileForService(pathInfo.roled, servicesInfo, appInfo) &&
-            generatePermissionFileForService(pathInfo.permissiond, pathInfo.verified, servicesInfo, appInfo) &&
+            generatePermissionFileForService(pathInfo.permissiond, pathInfo.verified, servicesInfo, packageInfo) &&
             generateAPIPermissionsFileForService(pathInfo, servicesInfo, appInfo) &&
             generateGroupFileForService(pathInfo, servicesInfo, appInfo) &&
-            generateServiceFile(pathInfo.serviced, servicesInfo, appInfo));
+            generateServiceFile(pathInfo.serviced, servicesInfo, packageInfo));
 }
 
 bool ServiceInstallerUtility::generateRoleFile(std::string path, bool isPublic, const ServiceInfo &servicesInfo)
@@ -353,10 +361,11 @@ bool ServiceInstallerUtility::generateRoleFileForService(const std::string &path
 bool ServiceInstallerUtility::generateUnifiedAppPermissionsFile(const std::string &path,
                                                                 bool verified,
                                                                 const std::string &fileName,
-                                                                const AppInfo &appInfo,
+                                                                const PackageInfo &packageInfo,
                                                                 const std::string &id,
                                                                 const std::string &allowedMask,
-                                                                const std::vector<std::string> &requiredServices)
+                                                                const std::vector<std::string> &requiredServices,
+                                                                const std::string appType)
 {
     if (!Utils::make_dir(path))
         return false;
@@ -370,7 +379,7 @@ bool ServiceInstallerUtility::generateUnifiedAppPermissionsFile(const std::strin
 
     JValue groups = Array();
 
-    JValue requires = appInfo.getRequiredPermissions();
+    JValue requires = packageInfo.getRequiredPermissions();
     static const JSchemaFragment requires_schema { R"(
         {
             "type": "array",
@@ -382,11 +391,11 @@ bool ServiceInstallerUtility::generateUnifiedAppPermissionsFile(const std::strin
     } else {
         LOG_WARNING(MSGID_WRONG_SERVICEID, 1,
                     PMLOGKS("APP_ID", id.c_str()),
-                    "#/requiredPermissions is missing in appinfo.json, set as public");
+                    "#/requiredPermissions is missing, set as public");
         groups << "public";
     }
 
-    if (appInfo.isQml())
+    if (appType == "qml")
         groups << "application.operation";
 
     for (const auto &service : requiredServices)
@@ -402,28 +411,30 @@ bool ServiceInstallerUtility::generateUnifiedAppPermissionsFile(const std::strin
 
 bool ServiceInstallerUtility::generatePermissionFileForWebApp(const std::string &path,
                                                               bool verified,
-                                                              const AppInfo &appInfo,
-                                                              const std::vector<std::string> &requiredServices)
+                                                              const PackageInfo &packageInfo,
+                                                              const std::vector<std::string> &requiredServices,
+                                                              const std::string appType)
 {
     return generateUnifiedAppPermissionsFile(path,
                                              verified,
-                                             Settings::instance().getLunaUnifiedAppJsonFileName(appInfo.getId()),
-                                             appInfo,
-                                             appInfo.getId(),
+                                             Settings::instance().getLunaUnifiedAppJsonFileName(packageInfo.getId()),
+                                             packageInfo,
+                                             packageInfo.getId(),
                                              "-*",
-                                             requiredServices);
+                                             requiredServices,
+                                             appType);
 }
 
 bool ServiceInstallerUtility::generatePermissionFileForNativeApp(const std::string &path,
                                                                  bool verified,
-                                                                 const AppInfo &appInfo,
+                                                                 const PackageInfo &packageInfo,
                                                                  const std::vector<std::string> &requiredServices)
 {
     return generateUnifiedAppPermissionsFile(path,
                                              verified,
-                                             Settings::instance().getLunaUnifiedAppJsonFileName(appInfo.getId()),
-                                             appInfo,
-                                             appInfo.getId(),
+                                             Settings::instance().getLunaUnifiedAppJsonFileName(packageInfo.getId()),
+                                             packageInfo,
+                                             packageInfo.getId(),
                                              "*",
                                              requiredServices);
 }
@@ -431,14 +442,51 @@ bool ServiceInstallerUtility::generatePermissionFileForNativeApp(const std::stri
 bool ServiceInstallerUtility::generatePermissionFileForService(const std::string &path,
                                                                bool verified,
                                                                const ServiceInfo &servicesInfo,
-                                                               const AppInfo &appInfo)
+                                                               const PackageInfo &packageInfo)
 {
-    return generateUnifiedAppPermissionsFile(path,
-                                             verified,
-                                             Settings::instance().getLunaUnifiedServiceJsonFileName(servicesInfo.getId()),
-                                             appInfo,
-                                             servicesInfo.getId(),
-                                             "*");
+    const std::string fileName = Settings::instance().getLunaUnifiedServiceJsonFileName(servicesInfo.getId());
+    const std::string id = servicesInfo.getId();
+    const std::string allowedMask = "*";
+
+    if (!Utils::make_dir(path))
+        return false;
+
+    // Prepare permissions file fileName for service name "id" with "allowedMask"
+    std::ofstream ofs { path + ("/" + fileName) };
+    if (!ofs)
+        return false;
+
+    using namespace pbnjson;
+
+    JValue groups = Array();
+
+    JValue requires = packageInfo.getRequiredPermissions();
+    if(requires.isNull())
+       requires = servicesInfo.getRequiredPermissions();
+
+    LOG_DEBUG("ServiceInstallerUtility::generatePermissionFileForService, permissions: %s", requires.stringify().c_str());
+
+    static const JSchemaFragment requires_schema { R"(
+        {
+            "type": "array",
+            "items": {"type": "string"}
+        }
+    )" };
+    if (JValidator { }.isValid(requires, requires_schema, nullptr)) {
+        groups = requires;
+    } else {
+        LOG_WARNING(MSGID_WRONG_SERVICEID, 1,
+                    PMLOGKS("APP_ID", id.c_str()),
+                    "#/requiredPermissions is missing, set as public");
+        groups << "public";
+    }
+
+    // Finally, dump the permissions object into the file.
+    JValue perm = Object() << JValue::KeyValue(id + allowedMask, groups);
+    ofs << JUtil::toSimpleString(perm) << std::endl;
+    ofs.close();
+
+    return true;
 }
 
 bool ServiceInstallerUtility::generateAPIPermissionsFileForServiceNewSchema(const std::string &path,
@@ -506,7 +554,7 @@ bool ServiceInstallerUtility::generateAPIPermissionsFileForService(const PathInf
                                                       const AppInfo &appInfo)
 {
     if ( servicesInfo.hasSchemaVersion() )
-	{		
+	{
         LOG_DEBUG("[ServiceInstallerUtility::generateAPIPermissionsFileForService]  New Schema");
         return generateAPIPermissionsFileForServiceNewSchema(pathInfo.api_permissiond, pathInfo.verified, servicesInfo, appInfo);
 	}
@@ -658,7 +706,7 @@ bool ServiceInstallerUtility::generateAPIPermissionsFileForServiceOldSchema(cons
 
 bool ServiceInstallerUtility::generateServiceFile(std::string path,
                                                   const ServiceInfo &servicesInfo,
-                                                  const AppInfo &appInfo)
+                                                  const PackageInfo &packageInfo)
 {
     if (!Utils::make_dir(path))
         return false;
@@ -710,54 +758,56 @@ bool ServiceInstallerUtility::generateManifestFile(const PathInfo &pathInfo,
 
     std::vector<std::string> serviceLists;
     if (packageInfo.isLoaded())
+    {
         packageInfo.getServices(serviceLists);
+        for (auto iter = serviceLists.begin(); iter != serviceLists.end(); ++iter) {
+            std::string servicePath = installBasePath + Settings::instance().getServiceinstallPath() + "/" + (*iter);
+            ServiceInfo serviceInfo(servicePath);
+            LOG_DEBUG("[ServiceInstallerUtility] generateManifestFile : SchemaValidation started");
+            if (!serviceInfo.isValidSchema()) {
+                return false;
+            }
 
-    for (auto iter = serviceLists.begin(); iter != serviceLists.end(); ++iter) {
-        std::string servicePath = installBasePath + Settings::instance().getServiceinstallPath() + "/" + (*iter);
-        ServiceInfo serviceInfo(servicePath);
-        LOG_DEBUG("[ServiceInstallerUtility] generateManifestFile : SchemaValidation started");
-        if (!serviceInfo.isValidSchema()) {
-            return false;
+            //generateRoleFileForService
+            filePath = adjustLunaDirForManifest(pathInfo.root, pathInfo.roled);
+            fileDir = filePath + "/" + Settings::instance().getLunaUnifiedServiceJsonFileName(serviceInfo.getId());
+            roledFileArray.append(fileDir);
+
+            //generatePermissionFileForService
+            filePath = adjustLunaDirForManifest(pathInfo.root, pathInfo.permissiond);
+            fileDir = filePath + "/" + Settings::instance().getLunaUnifiedServiceJsonFileName(serviceInfo.getId());
+            permissiondFileArray.append(fileDir);
+
+            //generateAPIPermissionsFileForService
+            filePath = adjustLunaDirForManifest(pathInfo.root, pathInfo.api_permissiond);
+            fileDir = filePath + "/" + Settings::instance().getLunaUnifiedAPIJsonFileName(serviceInfo.getId());
+            api_permissiondFileArray.append(fileDir);
+
+            //service files for service
+            filePath = adjustLunaDirForManifest(pathInfo.root, pathInfo.serviced);
+            fileDir = filePath + "/" + serviceInfo.getId() + ".service";
+            serviceFileArray.append(fileDir);
+
+            //group files for service
+            filePath = adjustLunaDirForManifest(pathInfo.root, pathInfo.groupd);
+            fileDir = filePath + "/" + Settings::instance().getLunaUnifiedGroupJsonFileName(serviceInfo.getId());
+            groupFileArray.append(fileDir);
         }
-
-        //generateRoleFileForService
-        filePath = adjustLunaDirForManifest(pathInfo.root, pathInfo.roled);
-        fileDir = filePath + "/" + Settings::instance().getLunaUnifiedServiceJsonFileName(serviceInfo.getId());
-        roledFileArray.append(fileDir);
-
-        //generatePermissionFileForService
-        filePath = adjustLunaDirForManifest(pathInfo.root, pathInfo.permissiond);
-        fileDir = filePath + "/" + Settings::instance().getLunaUnifiedServiceJsonFileName(serviceInfo.getId());
-        permissiondFileArray.append(fileDir);
-
-        //generateAPIPermissionsFileForService
-        filePath = adjustLunaDirForManifest(pathInfo.root, pathInfo.api_permissiond);
-        fileDir = filePath + "/" + Settings::instance().getLunaUnifiedAPIJsonFileName(serviceInfo.getId());
-        api_permissiondFileArray.append(fileDir);
-
-        //service files for service
-        filePath = adjustLunaDirForManifest(pathInfo.root, pathInfo.serviced);
-        fileDir = filePath + "/" + serviceInfo.getId() + ".service";
-        serviceFileArray.append(fileDir);
-
-        //group files for service
-        filePath = adjustLunaDirForManifest(pathInfo.root, pathInfo.groupd);
-        fileDir = filePath + "/" + Settings::instance().getLunaUnifiedGroupJsonFileName(serviceInfo.getId());
-        groupFileArray.append(fileDir);
-
     }
 
-    //generateRoleFileForApp
-    filePath = adjustLunaDirForManifest(pathInfo.root, pathInfo.roled);
-    fileDir = filePath + "/" + Settings::instance().getLunaUnifiedAppJsonFileName(appInfo.getId());
-    roledFileArray.append(fileDir);
+    if (appInfo.isLoaded())
+    {
+        //generateRoleFileForApp
+        filePath = adjustLunaDirForManifest(pathInfo.root, pathInfo.roled);
+        fileDir = filePath + "/" + Settings::instance().getLunaUnifiedAppJsonFileName(appInfo.getId());
+        roledFileArray.append(fileDir);
 
-    //generatePermissionFileForApp
-    filePath = adjustLunaDirForManifest(pathInfo.root, pathInfo.permissiond);
-    fileDir = filePath + "/" + Settings::instance().getLunaUnifiedAppJsonFileName(appInfo.getId());
-    permissiondFileArray.append(fileDir);
+        //generatePermissionFileForApp
+        filePath = adjustLunaDirForManifest(pathInfo.root, pathInfo.permissiond);
+        fileDir = filePath + "/" + Settings::instance().getLunaUnifiedAppJsonFileName(appInfo.getId());
+        permissiondFileArray.append(fileDir);
+    }
 
-    //TODO : There is no case only service in package.
     //set id & version from appinfo.json or packageinfo.json
     std::string id = serviceLists.empty() ? appInfo.getId() : packageInfo.getId();
     manifestObj.put("id", id);

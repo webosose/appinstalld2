@@ -75,7 +75,9 @@ public:
      * If schemaName is empty, return JSchemaFragment("{}")
      * If cache set, find cache first and if not exist in cache load schema and store it.
      */
-    pbnjson::JSchema loadSchema(const std::string &schemaName, bool cache);
+    pbnjson::JSchema          loadSchema(const std::string &schemaName, bool cache);
+
+    static pbnjson::JValue           appendArray(pbnjson::JValue arr1, pbnjson::JValue arr2);
 
 protected:
 friend class Singleton<JUtil>;

@@ -21,6 +21,8 @@
 #include <string>
 #include <vector>
 
+#include "AppInfo.h"
+
 /*! PackageInfo class is responsible for parsing packageinfo.json
  * and contain parsed data
  */
@@ -40,6 +42,13 @@ public:
     std::string getId() const;
     //! Get "version" field from packageinfo.json
     std::string getVersion() const;
+    //! Get required ACG for permissions
+    pbnjson::JValue getRequiredPermissions() const;
+
+    //! Create package info from app info
+    void createFromAppInfo(const AppInfo &appInfo);
+    //! Load package info from app info
+    void loadFromAppInfo(const AppInfo &appInfo);
 
 private:
     //! Load packageinfo.json from m_packagePath
