@@ -208,7 +208,7 @@ bool ServiceInstallerUtility::remove(std::string appId,
     CallChain& callchain = CallChain::acquire(std::bind(&ServiceInstallerUtility::onRemoveManifest,
                                                         _1, _2, appId, pathInfos, onComplete));
 
-    for (auto pathInfo : pathInfos) {
+    for (const auto &pathInfo : pathInfos) {
         auto itemAppInfo =
             std::make_shared<CallChainEventHandler::UpdateManifest>("com.webos.appInstallService", false,
                                                                     adjustLunaDirForManifest(pathInfo.root, pathInfo.manifestsd),
