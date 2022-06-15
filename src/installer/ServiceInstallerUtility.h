@@ -62,7 +62,7 @@ private:
     static bool removeOne(const std::string &appId, const PathInfo &pathInfo);
 
     //! generate security files for service
-    static bool generateFilesForService(const PathInfo &pathInfo, const ServiceInfo &servicesInfo, const AppInfo &appInfo, const PackageInfo &packageInfo);
+    static bool generateFilesForService(const PathInfo &pathInfo, const ServiceInfo &servicesInfo, const AppInfo &appInfo);
 
     /*! generate public & private role files, the pathes would be..
      * public for /var/palm/ls2/roles/pub
@@ -74,7 +74,7 @@ private:
      * public for /var/palm/ls2/services/pub
      * private for /var/palm/ls2/services/prv
      */
-    static bool generateServiceFile(std::string path, const ServiceInfo &servicesInfo, const PackageInfo &packageInfo);
+    static bool generateServiceFile(std::string path, const ServiceInfo &servicesInfo, const AppInfo &appInfo);
 
     /*! generate role file fileName for appId in passed path
      *  according to passed template templatePath
@@ -92,17 +92,17 @@ private:
     static bool generateRoleFileForService(const std::string &path, const ServiceInfo &servicesInfo, const AppInfo &appInfo);
 
     //! generate permission file for "id" in passed path
-    static bool generateUnifiedAppPermissionsFile(const std::string &path, bool verified, const std::string &fileName, const PackageInfo &packageInfo, const std::string &id,
-                                                  const std::string &allowedMask, const std::vector<std::string> &requiredServices = { }, const std::string appType = "");
+    static bool generateUnifiedAppPermissionsFile(const std::string &path, bool verified, const std::string &fileName, const AppInfo &appInfo, const std::string &id,
+                                                  const std::string &allowedMask, const std::vector<std::string> &requiredServices = { });
 
     //! generate permission file for web application in passed path
-    static bool generatePermissionFileForWebApp(const std::string &path, bool verified, const PackageInfo &packageInfo, const std::vector<std::string> &requiredServices, const std::string appType);
+    static bool generatePermissionFileForWebApp(const std::string &path, bool verified, const AppInfo &appInfo, const std::vector<std::string> &requiredServices);
 
     //! generate permission file for web application in passed path
-    static bool generatePermissionFileForNativeApp(const std::string &path, bool verified, const PackageInfo &packageInfo, const std::vector<std::string> &requiredServices);
+    static bool generatePermissionFileForNativeApp(const std::string &path, bool verified, const AppInfo &appInfo, const std::vector<std::string> &requiredServices);
 
     //! generate permission file for service in passed path
-    static bool generatePermissionFileForService(const std::string &path, bool verified, const ServiceInfo &servicesInfo, const PackageInfo &packageInfo);
+    static bool generatePermissionFileForService(const std::string &path, bool verified, const ServiceInfo &servicesInfo, const AppInfo &appInfo);
 
     //! generate provided permissions file for service in passed path
     static bool generateAPIPermissionsFileForService(const PathInfo &pathInfo, const ServiceInfo &servicesInfo, const AppInfo &appInfo);

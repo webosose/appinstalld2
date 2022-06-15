@@ -119,13 +119,6 @@ void AppCloseStep::addCallItems(const char *sessionId, const string& packageId, 
     );
     itemAppInfo->setOption(CallItem::OPTION_NONSTOP);
 
-    auto itemPkgInfo = std::make_shared<CallChainEventHandler::PkgInfo>(
-        "com.webos.appInstallService",
-        sessionId,
-        packageId
-    );
-    itemPkgInfo->setOption(CallItem::OPTION_NONSTOP);
-
     auto itemAppRemovable = std::make_shared<CallChainEventHandler::AppRemovable>(
     );
 
@@ -159,7 +152,6 @@ void AppCloseStep::addCallItems(const char *sessionId, const string& packageId, 
 
     callchain
         .add_if(itemAppInfo, true, itemAppLock)
-        .add(itemPkgInfo)
         .add(itemRunning)
         .add_if(itemRunning, true, itemClose)
         .add(itemSvcClose);
