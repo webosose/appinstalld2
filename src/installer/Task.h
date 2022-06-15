@@ -132,7 +132,7 @@ public:
     void setHasInstalledSizeWithControlFile(bool hasSize);
 
     //! set origin AppInfo
-    void setOriginAppInfo(pbnjson::JValue info);
+    void setOriginAppInfo(pbnjson::JValue appInfo);
 
     //! set InstallBasePath
     void setInstallBasePath(std::string installBasePath);

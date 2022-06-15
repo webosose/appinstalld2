@@ -183,9 +183,9 @@ void Task::setHasInstalledSizeWithControlFile(bool hasSizeInCtrFile)
     m_hasInstalledSizeWithControlFile = hasSizeInCtrFile;
 }
 
-void Task::setOriginAppInfo(pbnjson::JValue info)
+void Task::setOriginAppInfo(pbnjson::JValue appInfo)
 {
-    m_originAppInfo = info;
+    m_originAppInfo = appInfo;
     if (!m_originAppInfo.isNull())
         m_update = true;
 }

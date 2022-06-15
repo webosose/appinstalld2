@@ -56,28 +56,21 @@ bool GetIpkInfoStep::proceed(Task *task)
         task->getPackageId()
     );
 
-    auto itemPkgInfo = std::make_shared<CallChainEventHandler::PkgInfo>(
-        "com.webos.appInstallService",
-        sessionId,
-        task->getPackageId()
-    );
-
     task->setStep(GetIpkInfoRequested);
 
-    CallChain& callchain = CallChain::acquire(std::bind(&GetIpkInfoStep::onIpkInfo,
+    CallChain& callchain = CallChain::acquire(std::bind(&GetIpkInfoStep::onAppInfo,
     this, _1, _2));
 
     return callchain
         .add(itemAppInfo)
-        .add_if(itemAppInfo, false, itemPkgInfo)
         .run();
 }
 
-void GetIpkInfoStep::onIpkInfo(pbnjson::JValue result, void *user_data)
+void GetIpkInfoStep::onAppInfo(pbnjson::JValue result, void *user_data)
 {
-    LOG_DEBUG("GetIpkInfoStep::onIpkInfo() called\n");
+    LOG_DEBUG("GetIpkInfoStep::onAppInfo() called\n");
 
-    m_parentTask->setOriginAppInfo(result);
+    m_parentTask->setOriginAppInfo(result["appInfo"]);
     m_parentTask->setStep(GetIpkInfoComplete);
     m_parentTask->proceed();
 }

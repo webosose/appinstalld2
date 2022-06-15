@@ -164,8 +164,3 @@ bool ServiceInfo::isValidSchema()
 
     return true;
 }
-
-pbnjson::JValue ServiceInfo::getRequiredPermissions() const
-{
-    return hasSchemaVersion() ? m_info["services"][0]["requiredPermissions"] : pbnjson::JValue();
-}

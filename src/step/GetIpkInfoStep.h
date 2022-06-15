@@ -36,7 +36,7 @@ public:
     virtual bool proceed(Task *task);
 
 protected:
-    void onIpkInfo(pbnjson::JValue result, void *user_data);
+    void onAppInfo(pbnjson::JValue result, void *user_data);
 };
 
 #endif
