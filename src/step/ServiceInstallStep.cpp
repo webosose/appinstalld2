@@ -1,4 +1,4 @@
-// Copyright (c)  2017-2021  LG Electronics, Inc.
+// Copyright (c)  2017-2022  LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -50,20 +50,34 @@ bool ServiceInstallStep::proceed(Task *task)
     if (!DeviceId::isInternal(targetInfo["deviceId"].asString()))
         isExtStorage = true;
 
+    const char *getLunaUnifiedRolesDir = Settings::instance().getLunaUnifiedRolesDir(verify);
+    const char *getLunaUnifiedServicesDir = Settings::instance().getLunaUnifiedServicesDir(verify);
+    const char *getLunaUnifiedPermissionsDirExternal = Settings::instance().getLunaUnifiedPermissionsDir(verify, false);
+    const char *getLunaUnifiedPermissionsDirInternal = Settings::instance().getLunaUnifiedPermissionsDir(verify, true);
+    const char *getLunaUnifiedAPIPermissionsDir = Settings::instance().getLunaUnifiedAPIPermissionsDir(verify);
+    const char *getLunaUnifiedGroupsDir =  Settings::instance().getLunaUnifiedGroupsDir(verify);
+    const char *getLunaUnifiedManifestsDirExternal = Settings::instance().getLunaUnifiedManifestsDir(verify, false);
+    const char *getLunaUnifiedManifestsDirInternal = Settings::instance().getLunaUnifiedManifestsDir(verify, true);
+
+    if(getLunaUnifiedRolesDir == NULL || getLunaUnifiedServicesDir == NULL || getLunaUnifiedPermissionsDirInternal == NULL || getLunaUnifiedPermissionsDirExternal == NULL || getLunaUnifiedAPIPermissionsDir == NULL || getLunaUnifiedGroupsDir == NULL || getLunaUnifiedManifestsDirInternal == NULL || getLunaUnifiedManifestsDirExternal ==NULL)
+    {
+        LOG_DEBUG("[ServiceInstallStep::proceed] failed  :");
+        return false;
+    }
+
     if(isExtStorage && verify)
     {
         std::string lunaFilesPath = task->getInstallBasePath();
-
         pathInfo.verified = verify;
         pathInfo.root = lunaFilesPath;
-        pathInfo.legacyRoles = lunaFilesPath + Settings::instance().getLunaUnifiedRolesDir(verify);
-        pathInfo.legacyServices = lunaFilesPath + Settings::instance().getLunaUnifiedServicesDir(verify);
-        pathInfo.roled = lunaFilesPath + Settings::instance().getLunaUnifiedRolesDir(verify);
-        pathInfo.serviced = lunaFilesPath + Settings::instance().getLunaUnifiedServicesDir(verify);
-        pathInfo.permissiond = lunaFilesPath + Settings::instance().getLunaUnifiedPermissionsDir(verify, false);
-        pathInfo.api_permissiond = lunaFilesPath + Settings::instance().getLunaUnifiedAPIPermissionsDir(verify);
-        pathInfo.groupd =  lunaFilesPath + Settings::instance().getLunaUnifiedGroupsDir(verify);
-        pathInfo.manifestsd = lunaFilesPath + Settings::instance().getLunaUnifiedManifestsDir(verify, false);
+        pathInfo.legacyRoles = lunaFilesPath + std::string(getLunaUnifiedRolesDir);
+        pathInfo.legacyServices = lunaFilesPath + std::string(getLunaUnifiedServicesDir); 
+        pathInfo.roled = lunaFilesPath + std::string(getLunaUnifiedRolesDir);
+        pathInfo.serviced = lunaFilesPath + std::string(getLunaUnifiedServicesDir);
+        pathInfo.permissiond = lunaFilesPath + std::string(getLunaUnifiedPermissionsDirExternal);
+        pathInfo.api_permissiond = lunaFilesPath + std::string(getLunaUnifiedAPIPermissionsDir);
+        pathInfo.groupd =  lunaFilesPath + std::string(getLunaUnifiedGroupsDir);
+        pathInfo.manifestsd = lunaFilesPath + std::string(getLunaUnifiedManifestsDirExternal);
     }
     else
     {
@@ -72,12 +86,12 @@ bool ServiceInstallStep::proceed(Task *task)
         pathInfo.verified = verify;
         pathInfo.legacyRoles = lunaFilesPath + std::string("/roles");
         pathInfo.legacyServices = lunaFilesPath + std::string("/services");
-        pathInfo.roled = Settings::instance().getLunaUnifiedRolesDir(verify);
-        pathInfo.serviced = Settings::instance().getLunaUnifiedServicesDir(verify);
-        pathInfo.permissiond = Settings::instance().getLunaUnifiedPermissionsDir(verify, true);
-        pathInfo.api_permissiond = Settings::instance().getLunaUnifiedAPIPermissionsDir(verify);
-        pathInfo.groupd = Settings::instance().getLunaUnifiedGroupsDir(verify);
-        pathInfo.manifestsd = Settings::instance().getLunaUnifiedManifestsDir(verify, true);
+        pathInfo.roled = std::string(getLunaUnifiedRolesDir);
+        pathInfo.serviced = std::string(getLunaUnifiedServicesDir);
+        pathInfo.permissiond = std::string(getLunaUnifiedPermissionsDirInternal);
+        pathInfo.api_permissiond = std::string(getLunaUnifiedAPIPermissionsDir);
+        pathInfo.groupd =  std::string(getLunaUnifiedGroupsDir);
+        pathInfo.manifestsd = std::string(getLunaUnifiedManifestsDirInternal);
     }
 
     LOG_DEBUG("[InstallTask] install paths : pathInfo - root : %s, verified :%d, roles : %s, services :%s, roled : %s, serviced:%s, permissiond :%s,api_permissiond :%s, manifestsd : %s",

@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2019 LG Electronics, Inc.
+// Copyright (c) 2013-2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -39,7 +39,8 @@ gboolean AppInstallerUtility::cbChildProgress(GIOChannel *channel, GIOCondition 
 {
     GString *str = g_string_new("");
     GError *error = NULL;
-
+    
+    if(str!=NULL) {
     GIOStatus status = g_io_channel_read_line_string(channel, str, NULL, &error);
     if (status != G_IO_STATUS_NORMAL) {
         if (error) {
@@ -53,7 +54,7 @@ gboolean AppInstallerUtility::cbChildProgress(GIOChannel *channel, GIOCondition 
         g_string_free(str, TRUE);
         return true;
     }
-
+    
     LOG_DEBUG("Got status message from child: %s\n", str->str);
 
     if (!str->str || (strncmp(str->str, "status:", 7) && strncmp(str->str, " * ", 3))) {
@@ -68,6 +69,10 @@ gboolean AppInstallerUtility::cbChildProgress(GIOChannel *channel, GIOCondition 
     g_string_free(str, TRUE);
 
     return true;
+    }
+    LOG_DEBUG("str is an null pointer");
+    return false;
+
 }
 
 void AppInstallerUtility::cbChildComplete(GPid pid, gint status, gpointer user_data) {
