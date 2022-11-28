@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2020 LG Electronics, Inc.
+// Copyright (c) 2013-2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@
 #include "LSUtils.h"
 #include "JUtil.h"
 #include "Utils.h"
+#include "Logging.h"
 
 using namespace std::placeholders;
 
@@ -109,17 +110,26 @@ bool LSCallItem::onReceiveCall(pbnjson::JValue message)
 
 void LSCallItem::setServiceName(const char *serviceName)
 {
-    m_serviceName = serviceName;
+    if(serviceName!=NULL)
+      m_serviceName = serviceName;
+    else
+      LOG_DEBUG("Invalid service name");
 }
 
 void LSCallItem::setUri(const char *uri)
 {
-    m_uri = uri;
+    if(uri!=NULL)
+      m_uri = uri;
+    else
+      LOG_DEBUG("Invalid Uri");
 }
 
 void LSCallItem::setPayload(const char *payload)
 {
-    m_payload = payload;
+    if(payload!=NULL)
+      m_payload = payload;
+    else
+      LOG_DEBUG("Invalid payload");
 }
 
 bool LSCallItem::handler(LSHandle *lshandle, LSMessage *message, void *user_data)
