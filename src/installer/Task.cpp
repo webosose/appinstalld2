@@ -30,6 +30,7 @@
 #include "step/GetIpkInfoStep.h"
 #include "step/IpkInstallStep.h"
 #include "step/IpkParseStep.h"
+#include "step/UnpackagedInstallStep.h"
 #include "step/IpkRemoveStep.h"
 #include "step/InstallSmackStep.h"
 #include "step/RemoveJailStep.h"
@@ -69,10 +70,32 @@ bool Task::initialize(pbnjson::JValue param)
     m_verify = param["verify"].asBool();
     m_param = param.duplicate();
 
+    std::string url = param["ipkurl"].asString();
+    LOG_DEBUG("Task::initialize()  %s %s \n", m_name.c_str(), url.c_str());
+
+    bool isIpk = ! Utils::isDir(url);
+    if (m_name == "InstallTask" && !isIpk)
+    {
+        m_step = GetIpkInfoComplete;
+
+        std::string installBasePath;
+        installBasePath = Settings::instance().getInstallPath(m_verify);
+        LOG_DEBUG("Task::initialize()  installBasePath %s \n", installBasePath.c_str());
+        setInstallBasePath(installBasePath);
+
+        LOG_DEBUG("Task::initialize()  PackageId %s \n", m_appId.c_str());
+        setPackageId(m_appId);
+
+        StepFactory::instance().registerObject("IpkInstallNeeded", CreatorUsingNew<UnpackagedInstallStep>());
+    }
+    else
+    {
+        StepFactory::instance().registerObject("IpkInstallNeeded", CreatorUsingNew<IpkInstallStep>());
+    }
+
     StepFactory::instance().registerObject("IpkParseNeeded", CreatorUsingNew<IpkParseStep>());
     StepFactory::instance().registerObject("GetIpkInfoNeeded", CreatorUsingNew<GetIpkInfoStep>());
     StepFactory::instance().registerObject("AppCloseNeeded", CreatorUsingNew<AppCloseStep>());
-    StepFactory::instance().registerObject("IpkInstallNeeded", CreatorUsingNew<IpkInstallStep>());
     StepFactory::instance().registerObject("InstallSmackNeeded", CreatorUsingNew<InstallSmackStep>());
     StepFactory::instance().registerObject("ServiceInstallNeeded", CreatorUsingNew<ServiceInstallStep>());
     StepFactory::instance().registerObject("RemoveNeeded", CreatorUsingNew<RemoveStartStep>());
@@ -312,6 +335,7 @@ pbnjson::JValue Task::toJValue() const
 
         case IpkInstallNeeded:
         case IpkInstallRequested:
+        case UnpackagedInstallNeeded:
             details.put("state", "installing");
             break;
 

@@ -14,6 +14,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
+#include <dirent.h>
 #include <errno.h>
 #include <ftw.h>
 #include <glib.h>
@@ -104,6 +105,31 @@ long long Utils::file_size(const std::string &path)
     if (-1 == stat(path.c_str(), &buf))
         return -1;
     return (long long)buf.st_size;
+}
+
+bool Utils::isDir(const std::string &path)
+{
+    struct stat buf;
+    if (-1 == stat(path.c_str(), &buf))
+        return false;
+    return ( S_ISDIR(buf.st_mode));
+}
+
+long long Utils::dir_size(const std::string &path)
+{
+    DIR *d = opendir(path.c_str());
+    if (d == NULL)
+        return 0;
+
+    struct dirent *de;
+    struct stat buf;
+    long long total_size = 0;
+    for (de = readdir(d); de != NULL; de = readdir(d)) {
+        if (-1 != stat(de->d_name, &buf))
+            total_size += buf.st_size;
+    }
+    closedir(d);
+    return total_size;
 }
 
 gboolean Utils::cbAsync(gpointer data)

@@ -87,6 +87,12 @@ public:
     //! Get file size
     static long long file_size(const std::string &path);
 
+    //! It's a directory
+    static bool isDir(const std::string &path);
+
+    //! Get directory size
+    static long long dir_size(const std::string &path);
+
     //! Make std::string for type T
     template <class T>
     static std::string toString(const T &arg)
