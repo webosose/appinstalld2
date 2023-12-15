@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2020 LG Electronics, Inc.
+# Copyright (c) 2017-2024 LG Electronics, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ set(CMAKE_BUILD_TYPE Debug)
 include(webOS/webOS)
 webos_modules_init(1 5 0)
 webos_component(1 0 0)
-webos_distro_dep()
 
 include(FindPkgConfig)
 

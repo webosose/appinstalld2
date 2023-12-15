@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2020 LG Electronics, Inc.
+// Copyright (c) 2017-2024 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -53,7 +53,7 @@ bool AppCloseStep::proceed(Task *task)
     CallChain& callchain = CallChain::acquire(std::bind(&AppCloseStep::onAppClosed,
         this, _1, _2));
 
-#if defined(WEBOS_TARGET_DISTRO_WEBOS_AUTO)
+#if defined(ENABLE_SESSION)
     size_t size = SessionList::getInstance().size();
     for (size_t i = 0; i < size; ++i) {
         const std::string& sessionId = SessionList::getInstance().at(i);

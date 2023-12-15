@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2020 LG Electronics, Inc.
+// Copyright (c) 2017-2024 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ bool GetIpkInfoStep::proceed(Task *task)
 
     const char *sessionId = nullptr;
 
-#if defined(WEBOS_TARGET_DISTRO_WEBOS_AUTO)
+#if defined(ENABLE_SESSION)
     if (SessionList::getInstance().empty()) {
         // TODO Cannot query getAppInfo
         task->setError(ErrorInstall, APP_INSTALL_ERR_GENERAL, "empty session list, cannot query getAppInfo");

@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2020 LG Electronics, Inc.
+// Copyright (c) 2013-2024 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -69,7 +69,7 @@ bool LSCaller::CallOneReply(const char *uri,
     LSMessageToken token = 0;
     if (sessionId) {
         LOG_DEBUG("%s '%s' -c %s", uri, payload, sessionId);
-#if defined(WEBOS_TARGET_DISTRO_WEBOS_AUTO)
+#if defined(ENABLE_SESSION)
         if (!LSCallSession(m_handle, uri, payload, sessionId, callback, user_data, &token, lserror)) {
             errorText = lserror.what();
             return false;
