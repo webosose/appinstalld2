@@ -73,8 +73,8 @@ bool Task::initialize(pbnjson::JValue param)
     std::string url = param["ipkurl"].asString();
     LOG_DEBUG("Task::initialize()  %s %s \n", m_name.c_str(), url.c_str());
 
-    bool isIpk = ! Utils::isDir(url);
-    if (m_name == "InstallTask" && !isIpk)
+    bool isPWA =  Utils::isPWA(url);
+    if (m_name == "InstallTask" && isPWA)
     {
         m_step = GetIpkInfoComplete;
 

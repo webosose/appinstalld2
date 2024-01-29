@@ -45,7 +45,7 @@ bool UnpackagedInstallStep::proceed(Task *task)
 
     m_parentTask = task;
     pbnjson::JValue param = m_parentTask->getParam();
-    std::string unpackaged_data = param["ipkurl"].asString();
+    std::string unpackaged_data = Utils::getPWAPath(param["ipkurl"].asString());
     m_appId = m_parentTask->getAppId();
     m_parentTask->setUnpackFilesize(Utils::dir_size(unpackaged_data));
 

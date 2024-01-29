@@ -88,7 +88,10 @@ public:
     static long long file_size(const std::string &path);
 
     //! It's a directory
-    static bool isDir(const std::string &path);
+    static bool isPWA(const std::string &path);
+
+    // get the path of pwa directory
+    static std::string getPWAPath(const std::string &path);
 
     //! Get directory size
     static long long dir_size(const std::string &path);

@@ -107,12 +107,14 @@ long long Utils::file_size(const std::string &path)
     return (long long)buf.st_size;
 }
 
-bool Utils::isDir(const std::string &path)
+bool Utils::isPWA(const std::string &path)
 {
-    struct stat buf;
-    if (-1 == stat(path.c_str(), &buf))
-        return false;
-    return ( S_ISDIR(buf.st_mode));
+    return (0 == path.find("pwa://"));
+}
+
+std::string Utils::getPWAPath(const std::string &path)
+{
+    return path.substr(6); //returning after PWA:://
 }
 
 long long Utils::dir_size(const std::string &path)
