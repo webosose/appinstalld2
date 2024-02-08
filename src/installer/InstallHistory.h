@@ -77,6 +77,7 @@ enum TaskStep {
     RemoveJailNeeded, //46
     RemoveJailRequested, //47
     RemoveJailComplete, //48
+    UnpackagedInstallNeeded, // 49
     User = 0xFF,
     // add enums at the end to maintain database correctly
     //TODO : move below values to plugin if appinstalld get plugin model
@@ -131,6 +132,7 @@ public:
         enumMap["IpkDownloadComplete"] = IpkDownloadComplete;
 
         enumMap["IpkInstallNeeded"] = IpkInstallNeeded;
+        enumMap["UnpackagedInstallNeeded"] = UnpackagedInstallNeeded;
         enumMap["IpkInstallRequested"] = IpkInstallRequested;
         enumMap["IpkInstallStarting"] = IpkInstallStarting;
         enumMap["IpkInstallUnpacking"] = IpkInstallUnpacking;
