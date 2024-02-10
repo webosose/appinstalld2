@@ -81,7 +81,7 @@ bool Task::initialize(pbnjson::JValue param)
         std::string installBasePath;
         installBasePath = Settings::instance().getInstallPath(m_verify);
         LOG_DEBUG("Task::initialize()  installBasePath %s \n", installBasePath.c_str());
-        setInstallBasePath(installBasePath);
+        setInstallBasePath(std::move(installBasePath));
 
         LOG_DEBUG("Task::initialize()  PackageId %s \n", m_appId.c_str());
         setPackageId(m_appId);
@@ -177,7 +177,7 @@ std::vector<std::string>& Task::getServices()
 
 void Task::setPackageId(std::string packageId)
 {
-    m_packageId = packageId;
+    m_packageId = std::move(packageId);
 }
 
 std::string Task::getPackageId() const
@@ -208,7 +208,7 @@ void Task::setHasInstalledSizeWithControlFile(bool hasSizeInCtrFile)
 
 void Task::setOriginAppInfo(pbnjson::JValue appInfo)
 {
-    m_originAppInfo = appInfo;
+    m_originAppInfo = std::move(appInfo);
     if (!m_originAppInfo.isNull())
         m_update = true;
 }
@@ -216,7 +216,7 @@ void Task::setOriginAppInfo(pbnjson::JValue appInfo)
 //! set InstallBasePath
 void Task::setInstallBasePath(std::string installBasePath)
 {
-    m_installBasePath = installBasePath;
+    m_installBasePath = std::move(installBasePath);
 }
 
 //! get InstallBasePath
@@ -440,7 +440,7 @@ bool Task::isError() const
 
 bool Task::prepareStep(std::map<TaskStep, TaskStep> mapStep)
 {
-    m_mapStep = mapStep;
+    m_mapStep = std::move(mapStep);
     return true;
 }
 

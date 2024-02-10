@@ -36,7 +36,7 @@ public:
 
     void registerObject(const std::string &name, Creator func)
     {
-        m_map[name] = func;
+        m_map[name] = std::move(func);
     }
 
     std::shared_ptr<T> create(const std::string &name)

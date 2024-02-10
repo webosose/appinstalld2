@@ -54,7 +54,7 @@ bool IpkRemoveStep::proceed(Task *task)
             Settings::instance().getPackageinstallPath() +
             std::string("/") + m_parentTask->getAppId();
 
-        PackageInfo packageInfo(packagePath);
+        PackageInfo packageInfo(std::move(packagePath));
         if (packageInfo.isLoaded())
             packageInfo.getServices(appServices);
     }
@@ -65,7 +65,7 @@ bool IpkRemoveStep::proceed(Task *task)
             Settings::instance().getPackageinstallPath() +
             std::string("/") + m_parentTask->getAppId();
 
-        PackageInfo packageInfo(packagePath);
+        PackageInfo packageInfo(std::move(packagePath));
         if (packageInfo.isLoaded())
             packageInfo.getServices(appServices);
     }
@@ -111,7 +111,7 @@ bool IpkRemoveStep::onIpkRemoved(pbnjson::JValue result, void *user_data)
         std::string errorText = result["errorText"].asString();
         if (errorText.empty())
             errorText = "FAILED_REMOVE";
-        m_parentTask->setError(ErrorRemove, APP_REMOVE_ERR_REMOVE, errorText);
+        m_parentTask->setError(ErrorRemove, APP_REMOVE_ERR_REMOVE, std::move(errorText));
     }
 
     m_parentTask->proceed();

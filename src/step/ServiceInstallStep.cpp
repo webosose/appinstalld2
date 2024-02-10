@@ -105,7 +105,7 @@ bool ServiceInstallStep::proceed(Task *task)
               pathInfo.api_permissiond.c_str(),
               pathInfo.manifestsd.c_str());
 
-    if (!m_svcinstallerUtility.install(packageId, task->getInstallBasePath(), pathInfo,
+    if (!m_svcinstallerUtility.install(std::move(packageId), task->getInstallBasePath(), pathInfo,
         std::bind(&ServiceInstallStep::onInstallServiceComplete, this, _1, _2), task->isUpdate()))
     {
         task->setError(ErrorInstall, APP_INSTALL_ERR_GENERAL, "failed to install service");
@@ -129,7 +129,7 @@ void ServiceInstallStep::onInstallServiceComplete(bool success, std::string erro
     }
     else
     {
-        m_parentTask->setError(ErrorInstall, APP_INSTALL_ERR_INSTALL, errorText);
+        m_parentTask->setError(ErrorInstall, APP_INSTALL_ERR_INSTALL, std::move(errorText));
     }
 
     m_parentTask->proceed();

@@ -74,7 +74,7 @@ bool ServiceInstallerUtility::install(std::string appId,
     std::string applicationPath = installBasePath + Settings::instance().getApplicationInstallPath() + "/" + appId;
     std::string packagePath = installBasePath + Settings::instance().getPackageinstallPath() + "/" + appId;
     LOG_DEBUG("[ServiceInstallerUtility::install]  packagePath : %s", packagePath.c_str());
-    AppInfo appInfo(applicationPath);
+    AppInfo appInfo(std::move(applicationPath));
     if (!appInfo.isLoaded()) {
         Utils::async([=] {onComplete(false, "Cannot find appinfo.json");});
         return false;
@@ -82,7 +82,7 @@ bool ServiceInstallerUtility::install(std::string appId,
 
     std::vector<std::string> serviceLists;
 
-    PackageInfo packageInfo(packagePath);
+    PackageInfo packageInfo(std::move(packagePath));
     if (packageInfo.isLoaded())
         packageInfo.getServices(serviceLists);
 
@@ -97,7 +97,7 @@ bool ServiceInstallerUtility::install(std::string appId,
 
         std::string servicePath = installBasePath + Settings::instance().getServiceinstallPath() + "/" + (*iter);
         LOG_DEBUG("[ServiceInstallerUtility::install]  servicePath: %s ",servicePath.c_str());
-        ServiceInfo serviceInfo(servicePath);
+        ServiceInfo serviceInfo(std::move(servicePath));
 
         serviceInfo.applyRootPath(pathInfo.root);
         if (serviceInfo.getType() == "native") {
@@ -171,7 +171,7 @@ bool ServiceInstallerUtility::onUpdateManifest(pbnjson::JValue result,
 
     if (!returnValue) {
         std::string errorText = result["errorText"].asString();
-        onComplete(false, errorText);
+        onComplete(false, std::move(errorText));
         return false;
     }
     onComplete(true, "success");
@@ -283,7 +283,7 @@ bool ServiceInstallerUtility::generateRoleFile(std::string path, bool isPublic, 
 
     // generate new one
     LOG_DEBUG("[ServiceInstallerUtility] generateRoleFile : filename - %s", filename.c_str());
-    roleGenerate(templatePath, filename, servicesInfo.getId(), servicesInfo.getExec(true));
+    roleGenerate(std::move(templatePath), std::move(filename), servicesInfo.getId(), servicesInfo.getExec(true));
 
     return true;
 }
@@ -307,7 +307,7 @@ bool ServiceInstallerUtility::generateUnifiedAppRoleFile(const std::string &path
 
     // generate new one
     LOG_DEBUG("[ServiceInstallerUtility] generateUnifiedAppRoleFile : filename - %s", fullName.c_str());
-    roleGenerate(templatePath, fullName, id, exec);
+    roleGenerate(templatePath, std::move(fullName), id, exec);
 
     return true;
 }
@@ -378,7 +378,7 @@ bool ServiceInstallerUtility::generateUnifiedAppPermissionsFile(const std::strin
         }
     )" };
     if (JValidator { }.isValid(requires, requires_schema, nullptr)) {
-        groups = requires;
+        groups = std::move(requires);
     } else {
         LOG_WARNING(MSGID_WRONG_SERVICEID, 1,
                     PMLOGKS("APP_ID", id.c_str()),
@@ -394,7 +394,7 @@ bool ServiceInstallerUtility::generateUnifiedAppPermissionsFile(const std::strin
 
     // Finally, dump the permissions object into the file.
     JValue perm = Object() << JValue::KeyValue(id + allowedMask, groups);
-    ofs << JUtil::toSimpleString(perm) << std::endl;
+    ofs << JUtil::toSimpleString(std::move(perm)) << std::endl;
     ofs.close();
 
     return true;
@@ -494,7 +494,7 @@ bool ServiceInstallerUtility::generateAPIPermissionsFileForServiceNewSchema(cons
     }
     LOG_DEBUG("[ServiceInstallerUtility::generateAPIPermissionsFileForServiceNewSchema]  apiPerm json object: %s", apiPerm.stringify().c_str());
 
-    ofs << JUtil::toSimpleString(apiPerm) << std::endl;
+    ofs << JUtil::toSimpleString(std::move(apiPerm)) << std::endl;
     ofs.close();
 
     return true;
@@ -545,7 +545,7 @@ bool ServiceInstallerUtility::generateGroupFileForServiceOldSchema(const std::st
     LOG_DEBUG("[ServiceInstallerUtility::generateGroupFileForServiceOldSchema]  services : %s", services.stringify().c_str());
     group.put(Settings::instance().getGroupNameForService(servicesInfo.getId()),groupTrustLevelArray);
     LOG_DEBUG("[ServiceInstallerUtility::generateGroupFileForServiceOldSchema]  group json object: %s", group.stringify().c_str());
-    ofs << JUtil::toSimpleString(group) << std::endl;
+    ofs << JUtil::toSimpleString(std::move(group)) << std::endl;
     ofs.close();
     return true;
 
@@ -593,7 +593,7 @@ bool ServiceInstallerUtility::generateGroupFileForServiceNewSchema(const std::st
     }
     LOG_DEBUG("[ServiceInstallerUtility::generateGroupFileForServiceNewSchema]  group json object: %s", group.stringify().c_str());
 
-    ofs << JUtil::toSimpleString(group) << std::endl;
+    ofs << JUtil::toSimpleString(std::move(group)) << std::endl;
     ofs.close();
 
     return true;
@@ -648,7 +648,7 @@ bool ServiceInstallerUtility::generateAPIPermissionsFileForServiceOldSchema(cons
     if (!verified)
         perms.put("arescli.interface", methods);
 
-    ofs << JUtil::toSimpleString(perms) << std::endl;
+    ofs << JUtil::toSimpleString(std::move(perms)) << std::endl;
 
     ofs.close();
 
@@ -788,7 +788,7 @@ bool ServiceInstallerUtility::generateManifestFile(const PathInfo &pathInfo,
     if (!outputFile.is_open())
         return false;
 
-    outputFile << JUtil::toSimpleString(manifestObj) << std::endl;
+    outputFile << JUtil::toSimpleString(std::move(manifestObj)) << std::endl;
     outputFile.close();
 
     return true;

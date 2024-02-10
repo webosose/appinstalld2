@@ -34,7 +34,7 @@ namespace CallChainEventHandler
 
     AppRunning::AppRunning(const char *serviceName, const char *sessionId, std::string id)
         : LSCallItem(serviceName, "luna://com.webos.applicationManager/running", "{}", sessionId),
-          m_id(id)
+          m_id(std::move(id))
     {
     }
 
@@ -68,7 +68,7 @@ namespace CallChainEventHandler
     {
         pbnjson::JValue payload = pbnjson::Object();
         payload.put("id", id);
-        setPayload(JUtil::toSimpleString(payload).c_str());
+        setPayload(JUtil::toSimpleString(std::move(payload)).c_str());
     }
 
     bool AppClose::onReceiveCall(pbnjson::JValue message)
@@ -87,7 +87,7 @@ namespace CallChainEventHandler
     {
         pbnjson::JValue payload = pbnjson::Object();
         payload.put("id", id);
-        setPayload(JUtil::toSimpleString(payload).c_str());
+        setPayload(JUtil::toSimpleString(std::move(payload)).c_str());
     }
 
     bool AppInfo::onReceiveCall(pbnjson::JValue message)
@@ -126,7 +126,7 @@ namespace CallChainEventHandler
         pbnjson::JValue payload = pbnjson::Object();
         payload.put("id", id);
         payload.put("lock", true);
-        setPayload(JUtil::toSimpleString(payload).c_str());
+        setPayload(JUtil::toSimpleString(std::move(payload)).c_str());
     }
 
     bool AppLock::onReceiveCall(pbnjson::JValue message)
@@ -139,7 +139,7 @@ namespace CallChainEventHandler
 
         pbnjson::JValue chainData = getChainData();
         chainData.put("id", message["id"].asString());
-        setChainData(chainData);
+        setChainData(std::move(chainData));
 
         return true;
     }
@@ -172,7 +172,7 @@ namespace CallChainEventHandler
         std::string packagePath = boost::replace_all_copy(appPath, appDir, Settings::instance().getPackagePath());
         LOG_DEBUG("[SVC_CLOSE] package path : %s", packagePath.c_str());
 
-        PackageInfo packageInfo(packagePath);
+        PackageInfo packageInfo(std::move(packagePath));
 
         std::vector<std::string> serviceLists;
         packageInfo.getServices(serviceLists);
@@ -182,14 +182,14 @@ namespace CallChainEventHandler
             std::string servicePath = boost::replace_all_copy(appPath, appDir + "/" + appId, std::string("/usr/palm/services/") + (*iter));
             LOG_DEBUG("[SVC_CLOSE] service path : %s", servicePath.c_str());
 
-            ServiceInfo serviceInfo(servicePath);
+            ServiceInfo serviceInfo(std::move(servicePath));
             if (serviceInfo.getType() != "native") {
                 std::string errorText;
                 std::string uri = "luna://" + serviceInfo.getId() + "/quit";
                 LSCaller caller = LSUtils::acquireCaller("com.webos.appInstallService");
                 LOG_DEBUG("[NODEJS_SVC_CLOSE] uri : %s, session : %s", uri.c_str(), m_sessionId ? m_sessionId : "(nullptr)");
                 if (!caller.CallOneReply(uri.c_str(), "{}", m_sessionId, cbQuit, this, NULL, errorText)) {
-                    Utils::async([=] { onFinished(false, errorText); });
+                    Utils::async([=] { onFinished(false, std::move(errorText)); });
                     break;
                 }
             } else {
@@ -225,7 +225,7 @@ namespace CallChainEventHandler
             if (errorText.empty())
                 errorText = "Failed to quit nodejs service";
 
-            Utils::async([=] { item->onFinished(false, errorText); });
+            Utils::async([=] { item->onFinished(false, std::move(errorText)); });
 
             return true;
         }
@@ -243,7 +243,7 @@ namespace CallChainEventHandler
     {
         pbnjson::JValue json = pbnjson::Object();
         json.put("owners", owners);
-        setPayload(JUtil::toSimpleString(json).c_str());
+        setPayload(JUtil::toSimpleString(std::move(json)).c_str());
     }
 
     bool RemoveDb::onReceiveCall(pbnjson::JValue message)
@@ -266,7 +266,7 @@ namespace CallChainEventHandler
         else
             payload.put("prefix", prefix + "/");
 
-        setPayload(JUtil::toSimpleString(payload).c_str());
+        setPayload(JUtil::toSimpleString(std::move(payload)).c_str());
     }
 
     bool UpdateManifest::onReceiveCall(pbnjson::JValue message)
@@ -282,7 +282,7 @@ namespace CallChainEventHandler
     RemoveIpk::RemoveIpk(std::string id, bool verify, std::string externalPath)
         : m_id(id),
           m_verify(verify),
-          m_externalPath(externalPath)
+          m_externalPath(std::move(externalPath))
     {
     }
 

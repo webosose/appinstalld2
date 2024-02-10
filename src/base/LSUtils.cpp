@@ -159,7 +159,7 @@ bool LSUtils::replyError(Message *LSRequest, int errorCode, std::string errorTex
     reply.put("errorText", errorText);
     reply.put("subscribed", false);
 
-    LSRequest->respond(JUtil::toSimpleString(reply).c_str());
+    LSRequest->respond(JUtil::toSimpleString(std::move(reply)).c_str());
 
     return true;
 }

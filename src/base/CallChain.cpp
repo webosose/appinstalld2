@@ -149,12 +149,12 @@ bool LSCallItem::handler(LSHandle *lshandle, LSMessage *message, void *user_data
 
 CallChain& CallChain::acquire(CallCompleteHandler handler, void *user_data)
 {
-    CallChain *chain = new CallChain(handler, user_data);
+    CallChain *chain = new CallChain(std::move(handler), user_data);
     return *chain;
 }
 
 CallChain::CallChain(CallCompleteHandler handler, void *user_data)
-    : m_handler(handler),
+    : m_handler(std::move(handler)),
       m_user_data(user_data)
 {
 }

@@ -45,7 +45,7 @@ bool InstallSmackStep::proceed(Task *task) {
     std::string label;
     std::vector<std::string> serviceLists;
     AppInfo appInfo(applicationPath);
-    PackageInfo packageInfo(packagePath);
+    PackageInfo packageInfo(std::move(packagePath));
 
     GSpawnFlags flags = (GSpawnFlags)(G_SPAWN_SEARCH_PATH);
     gchar * argv[9] = {0};

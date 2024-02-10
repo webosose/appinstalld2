@@ -64,7 +64,7 @@ private:
     template <typename T>
     class AsyncCall : public IAsyncCall {
     public:
-        AsyncCall(T _func) : func(_func) {}
+        AsyncCall(T _func) : func(std::move(_func)) {}
 
         void Call() { func(); }
     private:
@@ -109,7 +109,7 @@ public:
     template <typename T>
     static bool async(T function, guint timeout = 0)
     {
-        AsyncCall<T> *p = new AsyncCall<T>(function);
+        AsyncCall<T> *p = new AsyncCall<T>(std::move(function));
         g_timeout_add(timeout, cbAsync, (gpointer)p);
         return true;
     }
