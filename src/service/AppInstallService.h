@@ -52,6 +52,11 @@ protected:
     //! LS callback for com.webos.appInstallService/dev/remove
     bool cb_dev_remove(LSMessage &message);
 
+    //! LS callback for getappinfo
+    static bool cb_appinfoCallback(LSHandle* ls, LSMessage* appinfoMsg, void* userData);
+
+    //! LS callback for getappinfo
+    static bool cb_dev_appinfoCallback(LSHandle* ls, LSMessage* appinfoMsg, void* userData);
     //! on attached
     virtual void onAttached();
 
