@@ -64,13 +64,13 @@ bool RemoveSmackStep::proceed(Task *task)
             Settings::instance().getPackageinstallPath() +
             std::string("/") + m_parentTask->getAppId();
 
-    PackageInfo packageInfo(packagePath);
+    PackageInfo packageInfo(std::move(packagePath));
     if (packageInfo.isLoaded())
         packageInfo.getServices(serviceLists);
 
     for (auto iter = serviceLists.begin(); iter != serviceLists.end(); ++iter) {
         std::string servicePath = Settings::instance().getInstallServicePath(verify) + "/" + (*iter);
-        ServiceInfo serviceInfo(servicePath);
+        ServiceInfo serviceInfo(std::move(servicePath));
         rulePaths.push_back(prefix + serviceInfo.getId());
     }
 
@@ -80,13 +80,13 @@ bool RemoveSmackStep::proceed(Task *task)
             Settings::instance().getPackageinstallPath() +
             std::string("/") + m_parentTask->getAppId();
 
-        PackageInfo packageInfoDev(packagePathDev);
+        PackageInfo packageInfoDev(std::move(packagePathDev));
         if (packageInfoDev.isLoaded())
             packageInfoDev.getServices(serviceLists);
 
         for (auto iter = serviceLists.begin(); iter != serviceLists.end(); ++iter) {
             std::string servicePath = Settings::instance().getInstallServicePath(false) + "/" + (*iter);
-            ServiceInfo serviceInfo(servicePath);
+            ServiceInfo serviceInfo(std::move(servicePath));
             rulePaths.push_back(prefix + serviceInfo.getId());
         }
     }

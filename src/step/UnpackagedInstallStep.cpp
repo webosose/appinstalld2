@@ -125,6 +125,6 @@ bool UnpackagedInstallStep::proceed(Task *task)
         break;
     }
 
-    task->setError(ErrorInstall, APP_INSTALL_ERR_GENERAL, error_message);
+    task->setError(ErrorInstall, APP_INSTALL_ERR_GENERAL, std::move(error_message));
     return false;
 }

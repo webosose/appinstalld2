@@ -20,7 +20,7 @@
 const std::string DEFAULT_VERSION = "1.0.0";
 
 PackageInfo::PackageInfo(std::string packagePath)
-    : m_packagePath(packagePath),
+    : m_packagePath(std::move(packagePath)),
       m_loaded(false)
 {
     m_loaded = load();

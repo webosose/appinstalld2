@@ -45,7 +45,7 @@ bool Jailer::remove(std::string appId, std::function<void(bool)> onRemove)
 
     if (result) {
         g_child_watch_add(childPid, cbRemoveComplete, this);
-        m_funcComplete = onRemove;
+        m_funcComplete = std::move(onRemove);
 
         return true;
     }

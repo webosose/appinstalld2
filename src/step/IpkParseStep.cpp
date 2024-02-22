@@ -123,7 +123,7 @@ void IpkParseStep::onPackageExtracted(bool result)
     std::string installedControlFilePath = m_parentTask->getInstallBasePath() + Settings::instance().getOpkgInfoPath() + "/" + control.getPackage() + ".control";
 
     AppPackage::Control installedControl;
-    if (appPackage.parseControl(installedControlFilePath, installedControl))
+    if (appPackage.parseControl(std::move(installedControlFilePath), installedControl))
     {
         if (control.getVersion() == installedControl.getVersion())
             m_parentTask->setAllowReInstall(true);

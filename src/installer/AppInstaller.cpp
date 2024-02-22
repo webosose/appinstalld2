@@ -73,7 +73,7 @@ std::shared_ptr<Task> AppInstaller::install(const std::string& appId,
         param.put("verify", verify);
         param.put("downgrade", allowDowngrade);
 
-        auto task = createTask(appId, taskName, param);
+        auto task = createTask(appId, taskName, std::move(param));
         if (!task) {
             errorCode = APP_INSTALL_ERR_INSTALL;
             errorText = "unable to initialize command";
@@ -140,7 +140,7 @@ void AppInstaller::onUpdateTask(const Task &task)
 
     LSCaller caller = LSUtils::acquireCaller("com.webos.appInstallService");
     std::string key = std::string("status_") + task.getAppId();
-    std::string payload = JUtil::toSimpleString(json);
+    std::string payload = JUtil::toSimpleString(std::move(json));
     if (!caller.replySubscription(key.c_str(), payload.c_str())) {
         LOG_WARNING(MSGID_REPLY_SUBSCR_FAIL, 2,
                     PMLOGKS(KEY,key.c_str()),

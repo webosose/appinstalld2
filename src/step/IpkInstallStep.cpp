@@ -58,7 +58,7 @@ bool IpkInstallStep::proceed(Task *task)
     bool allowDowngrade = param["allowDowngrade"].asBool();
 
     AppInstallerUtility::Result result =
-            m_installerUtility.install(ipkFile, 0, verify, allowDowngrade, task->isAllowReInstall(), task->getInstallBasePath(),
+            m_installerUtility.install(std::move(ipkFile), 0, verify, allowDowngrade, task->isAllowReInstall(), task->getInstallBasePath(),
                 std::bind(&IpkInstallStep::cbInstallIpkProgress, this, _1),
                 std::bind(&IpkInstallStep::cbInstallIpkComplete, this, _1));
 
@@ -146,7 +146,7 @@ void IpkInstallStep::cbInstallIpkComplete(int status)
             errorText = "FAILED_INSTALL"; break;
         }
 
-        m_parentTask->setError(ErrorInstall, APP_INSTALL_ERR_INSTALL, errorText);
+        m_parentTask->setError(ErrorInstall, APP_INSTALL_ERR_INSTALL, std::move(errorText));
         LOG_WARNING(MSGID_IPK_INSTALL_FAIL, 2,
             PMLOGKS(APP_ID, m_parentTask->getAppId().c_str()),
             PMLOGKFV(STATUS, "%" PRId32, status),
