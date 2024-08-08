@@ -133,7 +133,13 @@ long long Utils::dir_size(const std::string &path)
     closedir(d);
     return total_size;
 }
-
+bool Utils::is_File_exist(const std::string &path)
+{
+    struct stat buf;
+    if (0 != stat(path.c_str(), &buf))
+        return false;
+    return true;
+}
 gboolean Utils::cbAsync(gpointer data)
 {
     IAsyncCall *p = reinterpret_cast<IAsyncCall*>(data);

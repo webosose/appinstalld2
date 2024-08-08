@@ -111,7 +111,7 @@ void IpkParseStep::onPackageExtracted(bool result)
         PMLOGKS("version", control.getVersion().c_str()),
         "");
 
-    if (m_verify && m_appId != control.getPackage())
+    if ((m_verify && m_appId != control.getPackage()) ||(m_appId != control.getPackage()))
     {
         m_parentTask->setError(ErrorInstall, APP_INSTALL_ERR_INSTALL, "appId is wrong");
         m_parentTask->proceed();
