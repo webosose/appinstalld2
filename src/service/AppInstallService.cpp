@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2024 LG Electronics, Inc.
+// Copyright (c) 2013-2025 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -193,7 +193,7 @@ bool AppInstallService::cb_appinfoCallback(LSHandle* lshandle, LSMessage* appinf
                   PMLOGKFV(LOGKEY_ERRCODE, "%d", errorCode),
                   PMLOGKS(LOGKEY_ERRTEXT, errorText.c_str()),
                   "Application remove failed");
-        bool ret = LSUtils::replyError(&request, errorCode, errorText);
+        bool ret = LSUtils::replyError(&request, errorCode, std::move(errorText));
         LSMessageUnref(lsm);
         return ret;
     }
@@ -444,7 +444,7 @@ bool AppInstallService::cb_dev_appinfoCallback(LSHandle* lshandle, LSMessage* ap
                   PMLOGKFV(LOGKEY_ERRCODE, "%d", errorCode),
                   PMLOGKS(LOGKEY_ERRTEXT, errorText.c_str()),
                   "Application dev/remove failed");
-        bool ret = LSUtils::replyError(&request, errorCode, errorText);
+        bool ret = LSUtils::replyError(&request, errorCode, std::move(errorText));
         LSMessageUnref(lsm);
         return ret;
     }

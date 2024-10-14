@@ -50,9 +50,9 @@ public:
     };
 
     //! Extract targetFile(*.ipk) to targetPath
-    bool extract(std::string targetFile,
+    bool extract(std::string& targetFile,
                  int targetItem,
-                 std::string targetPath,
+                 std::string& targetPath,
                  std::function<void (bool)> onExtract);
 
     //! Parse control file

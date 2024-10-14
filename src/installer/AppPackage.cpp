@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2019 LG Electronics, Inc.
+// Copyright (c) 2013-2025 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -63,9 +63,9 @@ uint64_t AppPackage::Control::getInstalledSize() const
     return m_installedSize;
 }
 
-bool AppPackage::extract(std::string targetFile,
+bool AppPackage::extract(std::string& targetFile,
                          int targetItem,
-                         std::string targetPath,
+                         std::string& targetPath,
                          std::function<void (bool)> onExtract)
 {
     gchar* argv[16] = {0};
@@ -76,15 +76,15 @@ bool AppPackage::extract(std::string targetFile,
     gboolean result;
     int index = 0;
 
-    argv[index++] = (gchar *) "ar";
-    argv[index++] = (gchar *) "x";
-    argv[index++] = (gchar *) targetFile.c_str();
+    argv[index++] = g_strdup("ar");
+    argv[index++] = g_strdup("x");
+    argv[index++] = g_strdup(targetFile.c_str());
     if (targetItem & CONTROL)
-        argv[index++] = (gchar *) FILENAME_CONTROL;
+        argv[index++] = g_strdup(FILENAME_CONTROL);
     if (targetItem & DATA)
-        argv[index++] = (gchar *) FILENAME_DATA;
+        argv[index++] = g_strdup(FILENAME_DATA);
     if (targetItem & DEBIAN)
-        argv[index++] = (gchar *) FILENAME_DEBIAN;
+        argv[index++] = g_strdup(FILENAME_DEBIAN);
     argv[index] = NULL;
 
     if (targetItem & CONTROL)
@@ -111,7 +111,7 @@ bool AppPackage::extract(std::string targetFile,
 
         m_targetFile = targetFile;
         m_targetPath = targetPath;
-        m_funcExtracted = onExtract;
+        m_funcExtracted = std::move(onExtract);
         if (targetItem & CONTROL)
             m_targetItemList.push_back(FILENAME_CONTROL);
         if (targetItem & DATA)

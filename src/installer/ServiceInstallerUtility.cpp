@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2022 LG Electronics, Inc.
+// Copyright (c) 2013-2025 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -76,7 +76,7 @@ bool ServiceInstallerUtility::install(std::string appId,
     LOG_DEBUG("[ServiceInstallerUtility::install]  packagePath : %s", packagePath.c_str());
     AppInfo appInfo(std::move(applicationPath));
     if (!appInfo.isLoaded()) {
-        Utils::async([=] {onComplete(false, "Cannot find appinfo.json");});
+        Utils::async([onComplete = std::move(onComplete)]() {onComplete(false, "Cannot find appinfo.json");});
         return false;
     }
 
@@ -88,7 +88,7 @@ bool ServiceInstallerUtility::install(std::string appId,
 
     // generate Manifest file
     if (!ServiceInstallerUtility::generateManifestFile(pathInfo, installBasePath, packageInfo, appInfo)) {
-        Utils::async([=] {onComplete(false, "Failed to generate Manifest file");});
+        Utils::async([onComplete = std::move(onComplete)]() {onComplete(false, "Failed to generate Manifest file");});
         return false;
     }
 
@@ -110,13 +110,13 @@ bool ServiceInstallerUtility::install(std::string appId,
                         PMLOGKS("SERVICE_ID", serviceInfo.getId().c_str()),
                         PMLOGKS("APP_ID", appId.c_str()),
                         "Service id should start with app id");
-            Utils::async([=] {onComplete(false, "Service id should start with app id");});
-            return false;
+          Utils::async([onComplete = std::move(onComplete)]() {onComplete(false, "Service id should start with app id");});
+          return false;
         }
 
         if (!generateFilesForService(pathInfo, serviceInfo, appInfo)) {
-            Utils::async([=] {onComplete(false, "Failed to generate service files");});
-            return false;
+          Utils::async([onComplete = std::move(onComplete)]() {onComplete(false, "Failed to generate service files");});
+          return false;
         }
     }
 
@@ -124,15 +124,15 @@ bool ServiceInstallerUtility::install(std::string appId,
     if (appInfo.isNative()) {
         if (!generateRoleFileForNativeApp(pathInfo.roled, appInfo.getId(), appInfo.getMain(true)) ||
             !generatePermissionFileForNativeApp(pathInfo.permissiond, pathInfo.verified, appInfo, serviceLists)) {
-            Utils::async([=] {onComplete(false, "Failed to generate role and permission file for Native application");});
-            return false;
+          Utils::async([onComplete = std::move(onComplete)]() {onComplete(false, "Failed to generate role and permission file for Native application");});
+          return false;
         }
     } else if (appInfo.isWeb() || appInfo.isQml()) {
         // Web/Qml applications should have role file too
         if (!generateRoleFileForWebApp(pathInfo.roled, appInfo.getId()) ||
             !generatePermissionFileForWebApp(pathInfo.permissiond, pathInfo.verified, appInfo, serviceLists)) {
-            Utils::async([=] {onComplete(false, "Failed to generate role and permission file for Web application");});
-            return false;
+          Utils::async([onComplete = std::move(onComplete)]() {onComplete(false, "Failed to generate role and permission file for Web application");});
+          return false;
         }
     }
 
@@ -506,15 +506,15 @@ bool ServiceInstallerUtility::generateAPIPermissionsFileForService(const PathInf
                                                       const AppInfo &appInfo)
 {
     if ( servicesInfo.hasSchemaVersion() )
-	{		
+    {
         LOG_DEBUG("[ServiceInstallerUtility::generateAPIPermissionsFileForService]  New Schema");
         return generateAPIPermissionsFileForServiceNewSchema(pathInfo.api_permissiond, pathInfo.verified, servicesInfo, appInfo);
-	}
+    }
     else
-	{
+    {
         LOG_DEBUG("[ServiceInstallerUtility::generateAPIPermissionsFileForService]  Old Schema");
         return generateAPIPermissionsFileForServiceOldSchema(pathInfo.api_permissiond, pathInfo.verified, servicesInfo, appInfo);
-	}
+    }
 }
 
 

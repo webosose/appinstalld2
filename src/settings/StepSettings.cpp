@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2019 LG Electronics, Inc.
+// Copyright (c) 2017-2025 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -56,7 +56,7 @@ bool StepSettings::loadStepConfigure()
             // TODO Remove "InstallSmack" Step when smack is not supported
             if (!isSmackMode) {
                 if (action == "InstallSmackNeeded") {
-                    keepStatus = status;
+                    keepStatus = std::move(status);
                     continue;
                 }
                 if (status == "InstallSmackComplete") {
@@ -83,7 +83,7 @@ bool StepSettings::loadStepConfigure()
             //Remove "RemoveJailer" Step when jailer is not supported
             if (!isJailMode) {
                 if (action == "RemoveJailNeeded") {
-                    keepStatus = status; //keep "RemoveStarted" status
+                    keepStatus = std::move(status); //keep "RemoveStarted" status
                     continue;
                 }
                 if (status == "RemoveJailComplete") {
@@ -93,7 +93,7 @@ bool StepSettings::loadStepConfigure()
             // Remove "RemoveSmack" Step when smack is not supported
             if (!isSmackMode) {
                 if (action == "RemoveSmackNeeded") {
-                    keepStatus = status;
+                    keepStatus = std::move(status);
                     continue;
                 }
                 if (status == "RemoveSmackComplete") {
