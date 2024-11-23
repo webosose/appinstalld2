@@ -62,7 +62,7 @@ if(ICU STREQUAL "ICU-NOTFOUND")
 endif()
 
 webos_add_compiler_flags(DEBUG -O0)
-webos_add_compiler_flags(ALL -Wall "-std=c++11")
+webos_add_compiler_flags(ALL -Wall "-std=c++17")
 add_definitions(-D__STDC_FORMAT_MACROS)
 
 # Require that all undefined symbols are satisfied by the libraries from target_link_libraries()
