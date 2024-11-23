@@ -105,6 +105,7 @@ bool AppInstallService::cb_install(LSMessage &message)
                 return LSUtils::replyError(&request, APP_INSTALL_ERR_BADPARAM, "invalid ipkUrl");
               }
         }
+    }
 
     pbnjson::JValue details = std::move(json);
     if (!details["subscribe"].isNull())
@@ -326,6 +327,7 @@ bool AppInstallService::cb_dev_install(LSMessage &message)
                 return LSUtils::replyError(&request, APP_INSTALL_ERR_BADPARAM, "invalid ipkUrl");
               }
         }
+    }
 
     pbnjson::JValue details = std::move(json);
     if (!details["subscribe"].isNull())
