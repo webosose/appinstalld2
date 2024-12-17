@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2019 LG Electronics, Inc.
+// Copyright (c) 2013-2024 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -380,14 +380,36 @@ bool AppInstallService::cb_dev_install(LSMessage &message)
 bool AppInstallService::cb_dev_appinfoCallback(LSHandle* lshandle, LSMessage* appinfoMsg, void* userData){
 
     JUtil::Error error;
+    JUtil::Error error_appinfo_parse;
+
     LSMessage *lsm((LSMessage*)userData);
     Message request(lsm);
+    if (nullptr == lsm){
+        LOG_ERROR(MSGID_APPREMOVE_FAIL, 1, PMLOGKS(REASON,"Failed to remove,userdata invalid"), "");
+        return true;
+    }
 
-    pbnjson::JValue response = JUtil::parse(LSMessageGetPayload(appinfoMsg), std::string(""));
-    if(response.hasKey("errorCode")){
-        bool ret = LSUtils::replyError(&request, APP_INSTALL_ERR_BADPARAM, "No such id");
-        LSMessageUnref(lsm);
-        return ret;
+    pbnjson::JValue response = JUtil::parse(LSMessageGetPayload(appinfoMsg), std::string(""),&error_appinfo_parse);
+    bool retVal = response.hasKey("returnValue")? response["returnValue"].asBool(): true;
+
+    if ((error_appinfo_parse.code() != JUtil::Error::ErrorCode::None) ||
+        response.hasKey("errorCode") ||
+        retVal == false ){
+
+        pbnjson::JValue reply = pbnjson::Object();
+        if (reply.isNull()){
+            return false;
+        }
+        reply.put("returnValue", false);
+        reply.put("errorCode", APP_INSTALL_ERR_BADPARAM);
+        reply.put("errorText", "No such id");
+        reply.put("subscribed", false);
+
+        LSError lserror;
+
+        LSMessageRespond(lsm, reply.stringify().c_str(), &lserror);
+
+        return true;
     }
 
     pbnjson::JValue json = JUtil::parse(request.getPayload(), "appInstallService.dev.remove", &error);
@@ -461,8 +483,7 @@ bool AppInstallService::cb_dev_remove(LSMessage &message)
         return LSUtils::replyError(&request, APP_INSTALL_ERR_BADPARAM, error.detail());
     }
 
-    std::string id = json["id"].asString();
-
+    std::string id = json.hasKey("id")? json["id"].asString(): "";
     if (id.empty())
         return LSUtils::replyError(&request, APP_INSTALL_ERR_BADPARAM, "id is empty");
 
